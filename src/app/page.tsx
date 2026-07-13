@@ -355,29 +355,9 @@ export default function Home() {
           <h2 id="quiz-main-title" className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">
             Daily Quiz Challenge
           </h2>
-          <div className="flex flex-col items-center gap-2">
-            <div className="flex items-center justify-center gap-3 text-slate-500 font-semibold text-xs sm:text-sm">
-              <span className="px-3 py-1 bg-slate-100 rounded-full">Category: General Knowledge</span>
-              <span className="px-3 py-1 bg-slate-100 rounded-full">Level: Intermediate</span>
-            </div>
-            <div className="flex items-center justify-center gap-2 text-[11px] font-mono mt-1">
-              {!loading && (
-                isUsingFallback ? (
-                  <span 
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-100/70 shadow-sm cursor-help"
-                    title={error || "Table is empty or not configured. Using local questions."}
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                    Database: Offline Fallback Active
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-green-50 text-green-700 border border-green-100/70 shadow-sm">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                    Database: Connected to Supabase
-                  </span>
-                )
-              )}
-            </div>
+          <div className="flex items-center justify-center gap-3 text-slate-500 font-semibold text-xs sm:text-sm">
+            <span className="px-3 py-1 bg-slate-100 rounded-full">Category: General Knowledge</span>
+            <span className="px-3 py-1 bg-slate-100 rounded-full">Level: Intermediate</span>
           </div>
         </div>
 
@@ -628,12 +608,39 @@ export default function Home() {
       {/* Footer conforming to Professional Polish */}
       <footer className="w-full max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3 text-slate-400 text-sm border-t border-slate-200/60 pt-6">
         <p>© {new Date().getFullYear()} Live কুইজ • Minimalist Learning</p>
-        <div className="flex gap-6 font-medium text-xs">
-          <span className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+        <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-4 gap-y-2 font-medium text-xs">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
             Server Active
           </span>
-          <span className="text-slate-300">|</span>
+          <span className="text-slate-300 hidden xs:inline">|</span>
+          <span className="flex items-center gap-1.5">
+            {!loading ? (
+              isUsingFallback ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                  <span className="text-amber-600" title={error || "Table is empty or not configured. Using offline fallback."}>
+                    Database: Disconnected
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                  <span className="text-green-600">
+                    Database: Connected
+                  </span>
+                </>
+              )
+            ) : (
+              <>
+                <span className="w-2 h-2 rounded-full bg-slate-300 animate-pulse"></span>
+                <span className="text-slate-400 animate-pulse">
+                  Database: Connecting...
+                </span>
+              </>
+            )}
+          </span>
+          <span className="text-slate-300 hidden sm:inline">|</span>
           <span className="text-slate-400">Session ID: #88219</span>
         </div>
       </footer>

@@ -1,11 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // এখানে কোনো output: 'export' রাখা যাবে না
-  typescript: {
-    ignoreBuildErrors: true,
+  output: 'export',
+  images: {
+    unoptimized: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
+  webpack: (config, { dev }) => {
+    if (!dev) {
+      config.cache = false;
+    }
+    return config;
   },
 };
 
