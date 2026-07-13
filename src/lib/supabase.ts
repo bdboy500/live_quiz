@@ -11,9 +11,9 @@ export function getSupabase(): SupabaseClient {
     return supabaseInstance;
   }
 
-  // User specified direct configuration credentials
-  let supabaseUrl = "https://cqwssqcpxrwkivrrmuou.supabase.co/rest/v1/";
-  const supabaseAnonKey = "sb_publishable_LmhA6lMdI1LwZ4SnCaiPMg_0Fu5Saze";
+  // Check environment variables first, then fallback to hardcoded credentials
+  let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cqwssqcpxrwkivrrmuou.supabase.co/rest/v1/";
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_LmhA6lMdI1LwZ4SnCaiPMg_0Fu5Saze";
 
   // Robustly clean trailing /rest/v1/ or /rest/v1 to prevent SDK fetch URL formatting issues
   if (supabaseUrl.endsWith("/rest/v1/")) {
