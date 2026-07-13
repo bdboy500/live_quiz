@@ -42,10 +42,10 @@ export default function Home() {
         const supabase = getSupabase();
         
         // Fetch questions from supabase 'questions' table
+        // We fetch with select("*") without order to prevent the query from failing if 'id' column has a different name/case
         const { data, error: sbError } = await supabase
           .from("questions")
-          .select("*")
-          .order("id", { ascending: true });
+          .select("*");
 
         if (sbError) {
           throw sbError;
@@ -53,34 +53,127 @@ export default function Home() {
 
         if (data && data.length > 0) {
           const mappedQuestions: Question[] = data.map((q: any) => {
-            // Robust parsing of options
-            let options: string[] = [];
-            if (Array.isArray(q.options)) {
-              options = q.options;
-            } else if (typeof q.options === "string") {
-              try {
-                options = JSON.parse(q.options);
-              } catch {
-                options = q.options.split(",").map((s: string) => s.trim());
+            // 1. Find question text defensively
+            let questionText = "Untitled Question";
+            const possibleQuestionKeys = ["question", "question_text", "text", "questiontext", "title"];
+            for (const key of possibleQuestionKeys) {
+              if (q[key] !== undefined && q[key] !== null) {
+                questionText = String(q[key]);
+                break;
               }
-            } else {
-              options = [];
+            }
+            if (questionText === "Untitled Question") {
+              const keys = Object.keys(q);
+              const foundKey = keys.find(k => k.toLowerCase() === "question" || k.toLowerCase().includes("question"));
+              if (foundKey) {
+                questionText = String(q[foundKey]);
+              }
             }
 
-            // Robust parsing of correct index supporting correctIndex, correct_index, correctOptionIndex, correct_option_index
-            const correctIndex = 
-              q.correctIndex !== undefined ? Number(q.correctIndex) :
-              q.correct_index !== undefined ? Number(q.correct_index) :
-              q.correctOptionIndex !== undefined ? Number(q.correctOptionIndex) :
-              q.correct_option_index !== undefined ? Number(q.correct_option_index) : 0;
+            // 2. Find options defensively
+            let rawOptions: any = null;
+            const possibleOptionKeys = ["options", "choices", "answers", "answers_list", "option_list"];
+            for (const key of possibleOptionKeys) {
+              if (q[key] !== undefined && q[key] !== null) {
+                rawOptions = q[key];
+                break;
+              }
+            }
+            if (rawOptions === null) {
+              const keys = Object.keys(q);
+              const foundKey = keys.find(k => k.toLowerCase() === "options" || k.toLowerCase() === "choices" || k.toLowerCase().includes("option") || k.toLowerCase().includes("choice"));
+              if (foundKey) {
+                rawOptions = q[foundKey];
+              }
+            }
+
+            let options: string[] = [];
+            if (Array.isArray(rawOptions)) {
+              options = rawOptions.map(String);
+            } else if (typeof rawOptions === "string") {
+              try {
+                const parsed = JSON.parse(rawOptions);
+                if (Array.isArray(parsed)) {
+                  options = parsed.map(String);
+                } else if (typeof parsed === "object" && parsed !== null) {
+                  options = Object.values(parsed).map(String);
+                } else {
+                  options = [rawOptions];
+                }
+              } catch {
+                options = rawOptions.split(",").map((s: string) => s.trim());
+              }
+            } else if (typeof rawOptions === "object" && rawOptions !== null) {
+              options = Object.values(rawOptions).map(String);
+            } else {
+              options = ["Option 1", "Option 2", "Option 3", "Option 4"];
+            }
+
+            // 3. Find correct index defensively supporting lowercase, snake_case, camelCase variants
+            let correctIndexVal: any = undefined;
+            const possibleIndexKeys = [
+              "correctIndex", "correct_index", "correctOptionIndex", "correct_option_index",
+              "correctoptionindex", "correct_option", "correctoption", "correct", "answer",
+              "answer_index", "answerindex"
+            ];
+            for (const key of possibleIndexKeys) {
+              if (q[key] !== undefined && q[key] !== null) {
+                correctIndexVal = q[key];
+                break;
+              }
+            }
+            if (correctIndexVal === undefined) {
+              const keys = Object.keys(q);
+              const foundKey = keys.find(k => {
+                const lower = k.toLowerCase();
+                return lower.includes("correct") || lower.includes("answer") || lower === "index";
+              });
+              if (foundKey) {
+                correctIndexVal = q[foundKey];
+              }
+            }
+
+            let correctIndex = 0;
+            if (correctIndexVal !== undefined && correctIndexVal !== null) {
+              if (typeof correctIndexVal === "string") {
+                const parsedNum = parseInt(correctIndexVal, 10);
+                if (!isNaN(parsedNum) && parsedNum >= 0 && parsedNum < options.length) {
+                  correctIndex = parsedNum;
+                } else {
+                  const foundIdx = options.findIndex(opt => opt.toLowerCase().trim() === correctIndexVal.toLowerCase().trim());
+                  if (foundIdx !== -1) {
+                    correctIndex = foundIdx;
+                  } else {
+                    correctIndex = 0;
+                  }
+                }
+              } else if (typeof correctIndexVal === "number") {
+                correctIndex = correctIndexVal;
+              }
+            }
+
+            // 4. Find id is present
+            let id = Date.now();
+            if (q.id !== undefined && q.id !== null) {
+              id = Number(q.id);
+            } else {
+              const keys = Object.keys(q);
+              const foundIdKey = keys.find(k => k.toLowerCase() === "id");
+              if (foundIdKey) {
+                id = Number(q[foundIdKey]);
+              }
+            }
 
             return {
-              id: q.id !== undefined ? Number(q.id) : Date.now(),
-              question: q.question || "Untitled Question",
+              id,
+              question: questionText,
               options,
               correctIndex
             };
           });
+
+          // Sort defensively in memory if id exists
+          mappedQuestions.sort((a, b) => a.id - b.id);
 
           setQuestions(mappedQuestions);
           setIsUsingFallback(false);

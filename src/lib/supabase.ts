@@ -4,26 +4,25 @@ let supabaseInstance: SupabaseClient | null = null;
 
 /**
  * Lazily retrieves or initializes the Supabase client.
- * Using lazy initialization prevents the app from crashing at startup
- * if the environment variables have not yet been configured by the user.
+ * Configured directly with the user's project credentials.
  */
 export function getSupabase(): SupabaseClient {
   if (supabaseInstance) {
     return supabaseInstance;
   }
 
-  // Next.js standard environment variables
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // User specified direct configuration credentials
+  let supabaseUrl = "https://cqwssqcpxrwkivrrmuou.supabase.co/rest/v1/";
+  const supabaseAnonKey = "sb_publishable_LmhA6lMdI1LwZ4SnCaiPMg_0Fu5Saze";
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.warn(
-      "Supabase environment variables (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY) are missing. " +
-      "Database actions will be simulated until configured."
-    );
+  // Robustly clean trailing /rest/v1/ or /rest/v1 to prevent SDK fetch URL formatting issues
+  if (supabaseUrl.endsWith("/rest/v1/")) {
+    supabaseUrl = supabaseUrl.slice(0, -9);
+  } else if (supabaseUrl.endsWith("/rest/v1")) {
+    supabaseUrl = supabaseUrl.slice(0, -8);
   }
 
   // Create client
-  supabaseInstance = createClient(supabaseUrl || "https://placeholder.supabase.co", supabaseAnonKey || "placeholder-anon-key");
+  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
   return supabaseInstance;
 }
