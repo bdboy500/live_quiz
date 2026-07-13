@@ -1,0 +1,6 @@
+{
+  "name": "Live কুইজ",
+  "description": "A clean, minimalist daily quiz challenge application with real-time feedback and a countdown timer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
