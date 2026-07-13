@@ -1,10 +1,6 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
+"use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
 import { 
   Play, 
   RotateCcw, 
@@ -13,13 +9,20 @@ import {
   Timer, 
   Award, 
   AlertTriangle, 
-  ArrowRight,
   ChevronRight,
   HelpCircle
 } from "lucide-react";
-import { QUIZ_QUESTIONS, Question } from "./data";
+import { QUIZ_QUESTIONS, Question } from "../data";
+import { getSupabase } from "../lib/supabase";
+import { quizAudio } from "../lib/audio";
 
-export default function App() {
+export default function Home() {
+  // Database states
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isUsingFallback, setIsUsingFallback] = useState<boolean>(false);
+
   // Game states
   const [quizStarted, setQuizStarted] = useState<boolean>(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
@@ -30,9 +33,79 @@ export default function App() {
   const [timeLeft, setTimeLeft] = useState<number>(30);
   const [isTimedOut, setIsTimedOut] = useState<boolean>(false);
 
+  // Fetch questions on mount
+  useEffect(() => {
+    async function fetchQuestions() {
+      try {
+        setLoading(true);
+        setError(null);
+        const supabase = getSupabase();
+        
+        // Fetch questions from supabase 'questions' table
+        const { data, error: sbError } = await supabase
+          .from("questions")
+          .select("*")
+          .order("id", { ascending: true });
+
+        if (sbError) {
+          throw sbError;
+        }
+
+        if (data && data.length > 0) {
+          const mappedQuestions: Question[] = data.map((q: any) => {
+            // Robust parsing of options
+            let options: string[] = [];
+            if (Array.isArray(q.options)) {
+              options = q.options;
+            } else if (typeof q.options === "string") {
+              try {
+                options = JSON.parse(q.options);
+              } catch {
+                options = q.options.split(",").map((s: string) => s.trim());
+              }
+            } else {
+              options = [];
+            }
+
+            // Robust parsing of correct index supporting correctIndex, correct_index, correctOptionIndex, correct_option_index
+            const correctIndex = 
+              q.correctIndex !== undefined ? Number(q.correctIndex) :
+              q.correct_index !== undefined ? Number(q.correct_index) :
+              q.correctOptionIndex !== undefined ? Number(q.correctOptionIndex) :
+              q.correct_option_index !== undefined ? Number(q.correct_option_index) : 0;
+
+            return {
+              id: q.id !== undefined ? Number(q.id) : Date.now(),
+              question: q.question || "Untitled Question",
+              options,
+              correctIndex
+            };
+          });
+
+          setQuestions(mappedQuestions);
+          setIsUsingFallback(false);
+        } else {
+          // Empty table fallback
+          console.log("Supabase table 'questions' is empty. Loading local quiz questions.");
+          setQuestions(QUIZ_QUESTIONS);
+          setIsUsingFallback(true);
+        }
+      } catch (err: any) {
+        console.warn("Failed to fetch questions from Supabase, falling back to local questions:", err);
+        setError(err.message || "Failed to load questions from database.");
+        setQuestions(QUIZ_QUESTIONS);
+        setIsUsingFallback(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchQuestions();
+  }, []);
+
   // Derive active question
-  const currentQuestion: Question | undefined = QUIZ_QUESTIONS[currentQuestionIndex];
-  const isCompleted = quizStarted && currentQuestionIndex >= QUIZ_QUESTIONS.length;
+  const currentQuestion: Question | undefined = questions[currentQuestionIndex];
+  const isCompleted = quizStarted && questions.length > 0 && currentQuestionIndex >= questions.length;
 
   // Countdown timer logic
   useEffect(() => {
@@ -54,6 +127,7 @@ export default function App() {
 
   // Handle start quiz
   const handleStart = () => {
+    if (questions.length === 0) return;
     setQuizStarted(true);
     setCurrentQuestionIndex(0);
     setScore(0);
@@ -68,6 +142,7 @@ export default function App() {
   const handleSelectOption = (index: number) => {
     if (isSubmitted || isTimedOut) return;
     setSelectedOptionIndex(index);
+    quizAudio.playClick();
   };
 
   // Handle submit answer
@@ -77,9 +152,21 @@ export default function App() {
     const correct = selectedOptionIndex === currentQuestion.correctIndex;
     if (correct) {
       setScore((prev) => prev + 1);
+      quizAudio.playSuccess();
+    } else {
+      quizAudio.playError();
     }
     setSubmittedCount((prev) => prev + 1);
     setIsSubmitted(true);
+
+    try {
+      const supabase = getSupabase();
+      if (supabase) {
+        console.log("Supabase integrated, ready for database operations.");
+      }
+    } catch (err) {
+      console.warn("Supabase not fully configured yet:", err);
+    }
   };
 
   // Handle loading next question
@@ -104,7 +191,6 @@ export default function App() {
   };
 
   // SVG circular progress calculation
-  // Radius of circle = 24, circumference = 2 * Math.PI * 24 ≈ 150.79
   const radius = 24;
   const circumference = 2 * Math.PI * radius;
   const progressRatio = submittedCount > 0 ? score / submittedCount : 0;
@@ -176,9 +262,29 @@ export default function App() {
           <h2 id="quiz-main-title" className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">
             Daily Quiz Challenge
           </h2>
-          <div className="flex items-center justify-center gap-3 text-slate-500 font-semibold text-xs sm:text-sm">
-            <span className="px-3 py-1 bg-slate-100 rounded-full">Category: General Knowledge</span>
-            <span className="px-3 py-1 bg-slate-100 rounded-full">Level: Intermediate</span>
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex items-center justify-center gap-3 text-slate-500 font-semibold text-xs sm:text-sm">
+              <span className="px-3 py-1 bg-slate-100 rounded-full">Category: General Knowledge</span>
+              <span className="px-3 py-1 bg-slate-100 rounded-full">Level: Intermediate</span>
+            </div>
+            <div className="flex items-center justify-center gap-2 text-[11px] font-mono mt-1">
+              {!loading && (
+                isUsingFallback ? (
+                  <span 
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-100/70 shadow-sm cursor-help"
+                    title={error || "Table is empty or not configured. Using local questions."}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    Database: Offline Fallback Active
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-green-50 text-green-700 border border-green-100/70 shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                    Database: Connected to Supabase
+                  </span>
+                )
+              )}
+            </div>
           </div>
         </div>
 
@@ -187,16 +293,27 @@ export default function App() {
           id="main-card" 
           className="bg-white rounded-2xl shadow-xl shadow-slate-100 border border-slate-200/60 p-6 sm:p-8 md:p-10 flex flex-col relative overflow-hidden"
         >
-          <AnimatePresence mode="wait">
+          <div>
+            {/* 0. LOADING STATE */}
+            {loading && (
+              <div
+                className="w-full text-center flex flex-col items-center gap-6 py-12 transition-all duration-300 animate-fade-in"
+                id="state-loading"
+              >
+                <div className="w-16 h-16 rounded-full border-4 border-slate-100 border-t-blue-600 animate-spin flex items-center justify-center shadow-inner" />
+                <div className="space-y-2 max-w-md">
+                  <h3 className="text-lg font-bold text-slate-900">Loading quiz questions...</h3>
+                  <p className="text-slate-400 text-xs tracking-wider uppercase font-mono animate-pulse">
+                    Retrieving from Supabase
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* 1. NOT STARTED STATE */}
-            {!quizStarted && (
-              <motion.div
-                key="not-started"
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.3 }}
-                className="w-full text-center flex flex-col items-center gap-6 py-6"
+            {!loading && !quizStarted && (
+              <div
+                className="w-full text-center flex flex-col items-center gap-6 py-6 transition-all duration-300 animate-fade-in"
                 id="state-not-started"
               >
                 <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center border border-blue-100 shadow-sm">
@@ -217,18 +334,13 @@ export default function App() {
                   <Play className="w-5 h-5 fill-current" />
                   Start Quiz
                 </button>
-              </motion.div>
+              </div>
             )}
 
             {/* 2. TIMED OUT STATE */}
-            {quizStarted && isTimedOut && (
-              <motion.div
-                key="timed-out"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className="w-full text-center flex flex-col items-center gap-6 py-6"
+            {!loading && quizStarted && isTimedOut && (
+              <div
+                className="w-full text-center flex flex-col items-center gap-6 py-6 transition-all duration-300 animate-fade-in"
                 id="state-timed-out"
               >
                 <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center border border-red-100 animate-bounce">
@@ -249,18 +361,13 @@ export default function App() {
                   <RotateCcw className="w-5 h-5" />
                   Restart Quiz
                 </button>
-              </motion.div>
+              </div>
             )}
 
             {/* 3. COMPLETED STATE */}
-            {isCompleted && (
-              <motion.div
-                key="completed"
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
-                transition={{ duration: 0.3 }}
-                className="w-full text-center flex flex-col items-center gap-6 py-4"
+            {!loading && isCompleted && (
+              <div
+                className="w-full text-center flex flex-col items-center gap-6 py-4 transition-all duration-300 animate-fade-in"
                 id="state-completed"
               >
                 <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center border border-blue-100 shadow-sm">
@@ -269,9 +376,9 @@ export default function App() {
                 <div className="space-y-3 max-w-md">
                   <h3 className="font-display font-extrabold text-3xl text-slate-900">Quiz Completed!</h3>
                   <p className="text-slate-500 text-sm leading-relaxed">
-                    {score === QUIZ_QUESTIONS.length 
+                    {score === questions.length 
                       ? "Outstanding! You got a perfect score! 🏆" 
-                      : score >= QUIZ_QUESTIONS.length / 2 
+                      : score >= questions.length / 2 
                       ? "Great job! You played exceptionally well. 🎉" 
                       : "Good effort! Practice makes perfect. Try again!"}
                   </p>
@@ -292,25 +399,20 @@ export default function App() {
                   <RotateCcw className="w-5 h-5" />
                   Restart Challenge
                 </button>
-              </motion.div>
+              </div>
             )}
 
             {/* 4. ACTIVE QUIZ STATE */}
             {quizStarted && !isTimedOut && !isCompleted && currentQuestion && (
-              <motion.div
-                key={currentQuestionIndex}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.25 }}
-                className="w-full flex flex-col"
+              <div
+                className="w-full flex flex-col transition-all duration-300 animate-fade-in"
                 id={`question-block-${currentQuestionIndex}`}
               >
                 {/* Header question text and Timer label */}
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
                   <div className="flex flex-col gap-1">
                     <span id="question-progress" className="text-xs font-mono font-bold tracking-wider text-slate-400 uppercase">
-                      Question {currentQuestionIndex + 1} of {QUIZ_QUESTIONS.length}
+                      Question {currentQuestionIndex + 1} of {questions.length}
                     </span>
                     <p id="question-text" className="font-semibold text-lg sm:text-xl text-slate-800 leading-snug">
                       {currentQuestion.question}
@@ -355,7 +457,7 @@ export default function App() {
                         optionStyle = "bg-[#DCFCE7] border-[#22C55E] text-[#166534] font-semibold";
                         iconToRender = (
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#22C55E] shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
                         );
                       } else if (isSelected && !isCorrectOption) {
@@ -363,7 +465,7 @@ export default function App() {
                         optionStyle = "bg-[#FEE2E2] border-[#EF4444] text-[#991B1B] font-semibold";
                         iconToRender = (
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#EF4444] shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                           </svg>
                         );
                       } else if (isCorrectOption) {
@@ -371,7 +473,7 @@ export default function App() {
                         optionStyle = "bg-[#DCFCE7] border-[#22C55E] text-[#166534] font-semibold";
                         iconToRender = (
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#22C55E] shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
                         );
                       } else {
@@ -424,9 +526,9 @@ export default function App() {
                     </button>
                   )}
                 </div>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
+          </div>
         </div>
       </main>
 
@@ -445,4 +547,3 @@ export default function App() {
     </div>
   );
 }
-
