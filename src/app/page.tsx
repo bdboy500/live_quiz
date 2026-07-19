@@ -589,7 +589,14 @@ export default function Home() {
                 )}
               </button>
               
-              <div className="flex items-center gap-1.5 ml-1">
+              <button 
+                onClick={() => {
+                  setCurrentScreen("home");
+                  if (soundEnabled) quizAudio.playClick();
+                }}
+                className="flex items-center gap-1.5 ml-1 text-left cursor-pointer active:scale-95 transition-all"
+                id="header-brand-button"
+              >
                 {/* Custom icon combining orange graduation cap */}
                 <div className="bg-[#FF6A00] p-1.5 rounded-xl shadow-md shadow-orange-500/20">
                   <GraduationCap className="w-5 h-5 text-white" />
@@ -610,7 +617,7 @@ export default function Home() {
                     {currentScreen === "course-detail" && selectedCourseDetail ? `${selectedCourseDetail.category} Course Details` : "Exam MCQ Hub"}
                   </span>
                 </div>
-              </div>
+              </button>
             </div>
 
             {/* Right side: Search shortcut and Bell icon */}
@@ -2027,21 +2034,7 @@ export default function Home() {
               <span>Contact Us</span>
             </button>
 
-            {/* 8. Settings (duplicate as requested: "6. Settings") */}
-            <button
-              onClick={() => {
-                setActiveDrawerModal("settings");
-                setDrawerOpen(false);
-                if (soundEnabled) quizAudio.playClick();
-              }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all text-slate-600 hover:bg-slate-100 font-semibold text-xs border-t border-slate-100/50 mt-1 pt-2"
-              id="drawer-item-settings-dup"
-            >
-              <Settings className="w-4 h-4 text-slate-400" />
-              <span>6. Settings</span>
-            </button>
-
-            {/* 9. Logout/LogIn (listed as "6. Logout/LogIn" in prompt) */}
+            {/* 9. Logout/LogIn */}
             <button
               onClick={() => {
                 const nextState = !isLoggedIn;
@@ -2052,7 +2045,7 @@ export default function Home() {
                   else quizAudio.playError();
                 }
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all font-semibold text-xs mt-1 ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all font-semibold text-xs mt-1 border-t border-slate-100/50 pt-2.5 ${
                 isLoggedIn ? "text-red-600 hover:bg-red-50" : "text-[#FF6A00] hover:bg-orange-50"
               }`}
               id="drawer-item-auth"
@@ -2060,12 +2053,12 @@ export default function Home() {
               {isLoggedIn ? (
                 <>
                   <LogOut className="w-4 h-4 text-red-400" />
-                  <span>6. Logout</span>
+                  <span>Logout</span>
                 </>
               ) : (
                 <>
                   <LogIn className="w-4 h-4 text-[#FF6A00]" />
-                  <span>6. LogIn</span>
+                  <span>LogIn</span>
                 </>
               )}
             </button>
