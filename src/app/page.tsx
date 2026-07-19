@@ -622,8 +622,8 @@ export default function Home() {
                   </button>
                 </div>
 
-                {/* 6 Grid Icons according to Screenshot */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* 6 Grid Icons according to Screenshot - Horizontal layout for compactness */}
+                <div className="grid grid-cols-2 gap-3">
                   {/* Grid Item 1: BCS */}
                   <div 
                     onClick={() => {
@@ -631,10 +631,10 @@ export default function Home() {
                       setSelectedCourseCategory("BCS");
                       if (soundEnabled) quizAudio.playClick();
                     }}
-                    className="bg-white border border-slate-100 rounded-3xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
+                    className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
                   >
-                    <div className="w-14 h-14 bg-[#FFF1E6] rounded-2xl flex items-center justify-center text-orange-600 mb-2.5">
-                      <BookOpen className="w-7 h-7 stroke-[2.2px]" />
+                    <div className="w-10 h-10 bg-[#FFF1E6] rounded-xl flex items-center justify-center text-orange-600 shrink-0">
+                      <BookOpen className="w-5 h-5 stroke-[2.2px]" />
                     </div>
                     <span className="text-xs font-extrabold text-[#334155] tracking-wide">BCS</span>
                   </div>
@@ -646,10 +646,10 @@ export default function Home() {
                       setSelectedCourseCategory("Bank");
                       if (soundEnabled) quizAudio.playClick();
                     }}
-                    className="bg-white border border-slate-100 rounded-3xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
+                    className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
                   >
-                    <div className="w-14 h-14 bg-[#E6F0FA] rounded-2xl flex items-center justify-center text-blue-600 mb-2.5">
-                      <Calculator className="w-7 h-7 stroke-[2.2px]" />
+                    <div className="w-10 h-10 bg-[#E6F0FA] rounded-xl flex items-center justify-center text-blue-600 shrink-0">
+                      <Calculator className="w-5 h-5 stroke-[2.2px]" />
                     </div>
                     <span className="text-xs font-extrabold text-[#334155] tracking-wide">Bank</span>
                   </div>
@@ -661,10 +661,10 @@ export default function Home() {
                       setSelectedCourseCategory("Teachers");
                       if (soundEnabled) quizAudio.playClick();
                     }}
-                    className="bg-white border border-slate-100 rounded-3xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
+                    className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
                   >
-                    <div className="w-14 h-14 bg-[#EBF7EE] rounded-2xl flex items-center justify-center text-green-600 mb-2.5">
-                      <Globe className="w-7 h-7 stroke-[2.2px]" />
+                    <div className="w-10 h-10 bg-[#EBF7EE] rounded-xl flex items-center justify-center text-green-600 shrink-0">
+                      <Globe className="w-5 h-5 stroke-[2.2px]" />
                     </div>
                     <span className="text-xs font-extrabold text-[#334155] tracking-wide">Primary</span>
                   </div>
@@ -676,10 +676,10 @@ export default function Home() {
                       setSelectedCourseCategory("Teachers");
                       if (soundEnabled) quizAudio.playClick();
                     }}
-                    className="bg-white border border-slate-100 rounded-3xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
+                    className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
                   >
-                    <div className="w-14 h-14 bg-[#F3E8FF] rounded-2xl flex items-center justify-center text-purple-600 mb-2.5">
-                      <GraduationCap className="w-7 h-7 stroke-[2.2px]" />
+                    <div className="w-10 h-10 bg-[#F3E8FF] rounded-xl flex items-center justify-center text-purple-600 shrink-0">
+                      <GraduationCap className="w-5 h-5 stroke-[2.2px]" />
                     </div>
                     <span className="text-xs font-extrabold text-[#334155] tracking-wide">NTRCA</span>
                   </div>
@@ -691,10 +691,10 @@ export default function Home() {
                       setSelectedCourseCategory("Other");
                       if (soundEnabled) quizAudio.playClick();
                     }}
-                    className="bg-white border border-slate-100 rounded-3xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
+                    className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
                   >
-                    <div className="w-14 h-14 bg-[#FCE7F3] rounded-2xl flex items-center justify-center text-rose-600 mb-2.5">
-                      <FileText className="w-7 h-7 stroke-[2.2px]" />
+                    <div className="w-10 h-10 bg-[#FCE7F3] rounded-xl flex items-center justify-center text-rose-600 shrink-0">
+                      <FileText className="w-5 h-5 stroke-[2.2px]" />
                     </div>
                     <span className="text-xs font-extrabold text-[#334155] tracking-wide">PSC</span>
                   </div>
@@ -706,10 +706,10 @@ export default function Home() {
                       setSelectedCourseCategory("All");
                       if (soundEnabled) quizAudio.playClick();
                     }}
-                    className="bg-white border border-slate-100 rounded-3xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
+                    className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
                   >
-                    <div className="w-14 h-14 bg-[#E0F2FE] rounded-2xl flex items-center justify-center text-sky-600 mb-2.5">
-                      <Briefcase className="w-7 h-7 stroke-[2.2px]" />
+                    <div className="w-10 h-10 bg-[#E0F2FE] rounded-xl flex items-center justify-center text-sky-600 shrink-0">
+                      <Briefcase className="w-5 h-5 stroke-[2.2px]" />
                     </div>
                     <span className="text-xs font-extrabold text-[#334155] tracking-wide">All Job</span>
                   </div>
