@@ -58,7 +58,49 @@ interface TakenTest {
 }
 
 // Extra mock question databases for other test subjects
-const MATH_SCIENCE_QUESTIONS: Question[] = [
+const BANGLA_QUESTIONS: Question[] = [
+  {
+    id: 201,
+    question: "কোনটি রবীন্দ্রনাথ ঠাকুরের রচিত নাটক?",
+    options: ["কবর", "রক্তকরবী", "নয়াপল্টন", "শেষের কবিতা"],
+    correctIndex: 1
+  },
+  {
+    id: 203,
+    question: "বাংলা ব্যাকরণের প্রধান অংশ কয়টি?",
+    options: ["২টি", "৩টি", "৪টি", "৫টি"],
+    correctIndex: 2
+  },
+  {
+    id: 205,
+    question: "'অগ্নিবীণা' কাব্যগ্রন্থের রচয়িতা কে?",
+    options: ["রবীন্দ্রনাথ ঠাকুর", "কাজী নজরুল ইসলাম", "জসীমউদ্দীন", "জীবনানন্দ দাশ"],
+    correctIndex: 1
+  }
+];
+
+const ENGLISH_QUESTIONS: Question[] = [
+  {
+    id: 202,
+    question: "Who is the author of 'Hamlet'?",
+    options: ["William Shakespeare", "Charles Dickens", "George Orwell", "Jane Austen"],
+    correctIndex: 0
+  },
+  {
+    id: 204,
+    question: "What is the synonym of 'Abolish'?",
+    options: ["Build", "Cancel/Eliminate", "Create", "Support"],
+    correctIndex: 1
+  },
+  {
+    id: 206,
+    question: "Which of the following is a noun?",
+    options: ["Beautiful", "Quickly", "Happiness", "Under"],
+    correctIndex: 2
+  }
+];
+
+const MATH_QUESTIONS: Question[] = [
   {
     id: 101,
     question: "একটি আয়তক্ষেত্রের দৈর্ঘ্য ৪ মিটার এবং প্রস্থ ৩ মিটার হলে এর কর্ণের দৈর্ঘ্য কত?",
@@ -72,6 +114,15 @@ const MATH_SCIENCE_QUESTIONS: Question[] = [
     correctIndex: 3
   },
   {
+    id: 105,
+    question: "১ থেকে ১০ পর্যন্ত মৌলিক সংখ্যা কয়টি?",
+    options: ["৩টি", "৪টি", "৫টি", "৬টি"],
+    correctIndex: 1
+  }
+];
+
+const SCIENCE_QUESTIONS: Question[] = [
+  {
     id: 103,
     question: "পানির স্ফুটনাঙ্ক কত ডিগ্রি সেলসিয়াস?",
     options: ["৫০°C", "৮০°C", "১০০°C", "১২০°C"],
@@ -83,48 +134,6 @@ const MATH_SCIENCE_QUESTIONS: Question[] = [
     options: ["শ্বসন", "সালোকসংশ্লেষণ", "অভিশ্রবণ", "প্রস্বেদন"],
     correctIndex: 1
   },
-  {
-    id: 105,
-    question: "১ থেকে ১০ পর্যন্ত মৌলিক সংখ্যা কয়টি?",
-    options: ["৩টি", "৪টি", "৫টি", "৬টি"],
-    correctIndex: 1
-  }
-];
-
-const BANGLA_ENGLISH_QUESTIONS: Question[] = [
-  {
-    id: 201,
-    question: "কোনটি রবীন্দ্রনাথ ঠাকুরের রচিত নাটক?",
-    options: ["কবর", "রক্তকরবী", "নয়াপল্টন", "শেষের কবিতা"],
-    correctIndex: 1
-  },
-  {
-    id: 202,
-    question: "Who is the author of 'Hamlet'?",
-    options: ["William Shakespeare", "Charles Dickens", "George Orwell", "Jane Austen"],
-    correctIndex: 0
-  },
-  {
-    id: 203,
-    question: "বাংলা ব্যাকরণের প্রধান অংশ কয়টি?",
-    options: ["২টি", "৩টি", "৪টি", "৫টি"],
-    correctIndex: 2
-  },
-  {
-    id: 204,
-    question: "What is the synonym of 'Abolish'?",
-    options: ["Build", "Cancel/Eliminate", "Create", "Support"],
-    correctIndex: 1
-  },
-  {
-    id: 205,
-    question: "'অগ্নিবীণা' কাব্যগ্রন্থের রচয়িতা কে?",
-    options: ["রবীন্দ্রনাথ ঠাকুর", "কাজী নজরুল ইসলাম", "জসীমউদ্দীন", "জীবনানন্দ দাশ"],
-    correctIndex: 1
-  }
-];
-
-const GENERAL_SCIENCE_QUESTIONS: Question[] = [
   {
     id: 301,
     question: "মানবদেহের স্বাভাবিক তাপমাত্রা কত ডিগ্রি ফারেনহাইট?",
@@ -145,10 +154,23 @@ const GENERAL_SCIENCE_QUESTIONS: Question[] = [
   }
 ];
 
+const ALL_COURSES_DATA = [
+  { id: "bcs", title: "BCS Preparation Masterclass", desc: "পূর্ণাঙ্গ বিসিএস সিলেবাসের ওপর ভিত্তি করে অধ্যায়ভিত্তিক লাইভ এমসিকিউ ও বিশ্লেষণমূলক লেকচার শীট।", category: "BCS", icon: BookOpen, bg: "bg-[#FFF1E6]", iconColor: "text-orange-600" },
+  { id: "bank", title: "Bank Job Officer Premium", desc: "সরকারি ও বেসরকারি ব্যাংক সিনিয়র অফিসার নিয়োগ পরীক্ষার উপযোগী প্রিপারেশন গাইড এবং শর্টকাট ম্যাথ।", category: "Bank", icon: Calculator, bg: "bg-[#E6F0FA]", iconColor: "text-blue-600" },
+  { id: "primary", title: "Primary School Teacher Prep", desc: "প্রাথমিক সহকারী শিক্ষক নিয়োগের বিগত বছরের প্রশ্ন এবং বোর্ড বই ভিত্তিক বিশেষ স্পিড কুইজ মডিউল।", category: "Teachers", icon: Globe, bg: "bg-[#EBF7EE]", iconColor: "text-green-600" },
+  { id: "ntrca", title: "NTRCA School & College Registration", desc: "১৭তম ও ১৮তম শিক্ষক নিবন্ধন পরীক্ষার সর্বশেষ সিলেবাস ভিত্তিক সাধারণ জ্ঞান এবং সাবজেক্ট প্রস্তুতি।", category: "Teachers", icon: GraduationCap, bg: "bg-[#F3E8FF]", iconColor: "text-purple-600" },
+  { id: "psc", title: "PSC Non-Cadre Mock Series", desc: "বাংলাদেশ সরকারী কর্ম কমিশন (PSC) আয়োজিত বিভিন্ন গ্রেডের ও নন-ক্যাডার পদের জন্য সুপার মক টেস্ট।", category: "Other", icon: FileText, bg: "bg-[#FCE7F3]", iconColor: "text-rose-600" },
+  { id: "all_job", title: "All Job Exams Universal Pack", desc: "সকল সরকারী ও স্বায়ত্তশাসিত প্রতিষ্ঠানের ৩য় ও ৪র্থ শ্রেণীর চাকরি পরীক্ষার সাধারণ জ্ঞান ও আইকিউ প্যাকেজ।", category: "All", icon: Briefcase, bg: "bg-[#E0F2FE]", iconColor: "text-sky-600" },
+  { id: "bangla_english", title: "Bangla & English Literature Mastery", desc: "বাংলা ব্যাকরণ ও সাহিত্য, ইংরেজি গ্রামার এবং লিটারেচার পাসের জন্য প্রফেশনাল শর্ট টেকনিক কোর্স।", category: "Bangla", icon: BookOpen, bg: "bg-[#F1F5F9]", iconColor: "text-slate-700" },
+  { id: "math_science", title: "Quantitative Aptitude & General Science", desc: "জ্যামিতি, বীজগণিত, পাটিগণিত এবং দৈনন্দিন বিজ্ঞান বিষয়ের সবচেয়ে সহজ সমাধান কৌশল ও পরীক্ষা।", category: "Math", icon: Calculator, bg: "bg-[#E0F2FE]", iconColor: "text-blue-600" }
+];
+
 export default function Home() {
   // Navigation State
-  const [currentScreen, setCurrentScreen] = useState<"home" | "quiz" | "courses" | "routine" | "tests" | "profile">("home");
+  const [currentScreen, setCurrentScreen] = useState<"home" | "quiz" | "courses" | "routine" | "tests" | "profile" | "course-detail">("home");
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const [selectedCourseDetail, setSelectedCourseDetail] = useState<any | null>(null);
+  const [previousScreen, setPreviousScreen] = useState<"home" | "quiz" | "courses" | "routine" | "tests" | "profile" | "course-detail">("home");
   
   // Database & Loaded Questions State
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -174,6 +196,7 @@ export default function Home() {
   // Search filter
   const [coursesSearchQuery, setCoursesSearchQuery] = useState<string>("");
   const [selectedCourseCategory, setSelectedCourseCategory] = useState<string>("All");
+  const [expandedCourse, setExpandedCourse] = useState<string | null>(null);
 
   // Custom User Routine State (persisted inside localStorage if client-side)
   const [routineTasks, setRoutineTasks] = useState<RoutineItem[]>([
@@ -507,16 +530,7 @@ export default function Home() {
   const routinePercentage = routineTasks.length > 0 ? Math.round((completedRoutineCount / routineTasks.length) * 100) : 0;
 
   // Search filter for courses
-  const filteredCoursesList = [
-    { id: "bcs", title: "BCS Preparation Masterclass", desc: "পূর্ণাঙ্গ বিসিএস সিলেবাসের ওপর ভিত্তি করে অধ্যায়ভিত্তিক লাইভ এমসিকিউ ও বিশ্লেষণমূলক লেকচার শীট।", category: "BCS", icon: BookOpen, bg: "bg-[#FFF1E6]", iconColor: "text-orange-600" },
-    { id: "bank", title: "Bank Job Officer Premium", desc: "সরকারি ও বেসরকারি ব্যাংক সিনিয়র অফিসার নিয়োগ পরীক্ষার উপযোগী প্রিপারেশন গাইড এবং শর্টকাট ম্যাথ।", category: "Bank", icon: Calculator, bg: "bg-[#E6F0FA]", iconColor: "text-blue-600" },
-    { id: "primary", title: "Primary School Teacher Prep", desc: "প্রাথমিক সহকারী শিক্ষক নিয়োগের বিগত বছরের প্রশ্ন এবং বোর্ড বই ভিত্তিক বিশেষ স্পিড কুইজ মডিউল।", category: "Teachers", icon: Globe, bg: "bg-[#EBF7EE]", iconColor: "text-green-600" },
-    { id: "ntrca", title: "NTRCA School & College Registration", desc: "১৭তম ও ১৮তম শিক্ষক নিবন্ধন পরীক্ষার সর্বশেষ সিলেবাস ভিত্তিক সাধারণ জ্ঞান এবং সাবজেক্ট প্রস্তুতি।", category: "Teachers", icon: GraduationCap, bg: "bg-[#F3E8FF]", iconColor: "text-purple-600" },
-    { id: "psc", title: "PSC Non-Cadre Mock Series", desc: "বাংলাদেশ সরকারী কর্ম কমিশন (PSC) আয়োজিত বিভিন্ন গ্রেডের ও নন-ক্যাডার পদের জন্য সুপার মক টেস্ট।", category: "Other", icon: FileText, bg: "bg-[#FCE7F3]", iconColor: "text-rose-600" },
-    { id: "all_job", title: "All Job Exams Universal Pack", desc: "সকল সরকারী ও স্বায়ত্তশাসিত প্রতিষ্ঠানের ৩য় ও ৪র্থ শ্রেণীর চাকরি পরীক্ষার সাধারণ জ্ঞান ও আইকিউ প্যাকেজ।", category: "All", icon: Briefcase, bg: "bg-[#E0F2FE]", iconColor: "text-sky-600" },
-    { id: "bangla_english", title: "Bangla & English Literature Mastery", desc: "বাংলা ব্যাকরণ ও সাহিত্য, ইংরেজি গ্রামার এবং লিটারেচার পাসের জন্য প্রফেশনাল শর্ট টেকনিক কোর্স।", category: "Bangla", icon: BookOpen, bg: "bg-[#F1F5F9]", iconColor: "text-slate-700" },
-    { id: "math_science", title: "Quantitative Aptitude & General Science", desc: "জ্যামিতি, বীজগণিত, পাটিগণিত এবং দৈনন্দিন বিজ্ঞান বিষয়ের সবচেয়ে সহজ সমাধান কৌশল ও পরীক্ষা।", category: "Math", icon: Calculator, bg: "bg-[#E0F2FE]", iconColor: "text-blue-600" }
-  ].filter(course => {
+  const filteredCoursesList = ALL_COURSES_DATA.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(coursesSearchQuery.toLowerCase()) || 
                           course.desc.toLowerCase().includes(coursesSearchQuery.toLowerCase());
     const matchesCategory = selectedCourseCategory === "All" || course.category === selectedCourseCategory;
@@ -542,16 +556,24 @@ export default function Home() {
         {/* Main Header of the App (Persistent on Home, Courses, Routine, Tests, Profile) */}
         {currentScreen !== "quiz" && (
           <header className="bg-white border-b border-slate-100 px-5 pt-7 pb-4 sm:pt-10 flex items-center justify-between shadow-sm sticky top-0 z-30">
-            {/* Left side: Hamburger and brand name */}
+            {/* Left side: Hamburger/Back and brand name */}
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => {
-                  setCurrentScreen("profile");
+                  if (currentScreen === "course-detail") {
+                    setCurrentScreen(previousScreen);
+                  } else {
+                    setCurrentScreen("profile");
+                  }
                   if (soundEnabled) quizAudio.playClick();
                 }}
                 className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 active:scale-95 transition-all"
               >
-                <Menu className="w-6 h-6 stroke-[2.2px]" />
+                {currentScreen === "course-detail" ? (
+                  <ArrowLeft className="w-6 h-6 stroke-[2.2px]" />
+                ) : (
+                  <Menu className="w-6 h-6 stroke-[2.2px]" />
+                )}
               </button>
               
               <div className="flex items-center gap-1.5 ml-1">
@@ -561,10 +583,18 @@ export default function Home() {
                 </div>
                 <div className="flex flex-col">
                   <span className="font-extrabold text-[#1E293B] text-base tracking-tight leading-none">
-                    Job <span className="text-[#FF6A00]">Master</span>
+                    {currentScreen === "course-detail" && selectedCourseDetail ? (
+                      <>
+                        {selectedCourseDetail.title.split(" ")[0]} <span className="text-[#FF6A00]">{selectedCourseDetail.title.split(" ").slice(1).join(" ")}</span>
+                      </>
+                    ) : (
+                      <>
+                        Job <span className="text-[#FF6A00]">Master</span>
+                      </>
+                    )}
                   </span>
                   <span className="text-[8px] font-bold tracking-[0.08em] text-[#94A3B8] uppercase mt-0.5">
-                    Exam MCQ Hub
+                    {currentScreen === "course-detail" && selectedCourseDetail ? `${selectedCourseDetail.category} Course Details` : "Exam MCQ Hub"}
                   </span>
                 </div>
               </div>
@@ -608,9 +638,11 @@ export default function Home() {
               {/* Our Course Section */}
               <div className="space-y-3.5">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-extrabold text-base text-[#1E293B] tracking-tight">
-                    Our Course
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-extrabold text-base text-[#1E293B] tracking-tight">
+                      Our Course
+                    </h3>
+                  </div>
                   <button 
                     onClick={() => {
                       setCurrentScreen("courses");
@@ -627,8 +659,10 @@ export default function Home() {
                   {/* Grid Item 1: BCS */}
                   <div 
                     onClick={() => {
-                      setCurrentScreen("courses");
-                      setSelectedCourseCategory("BCS");
+                      const course = ALL_COURSES_DATA.find(c => c.id === "bcs");
+                      setSelectedCourseDetail(course);
+                      setPreviousScreen("home");
+                      setCurrentScreen("course-detail");
                       if (soundEnabled) quizAudio.playClick();
                     }}
                     className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
@@ -642,8 +676,10 @@ export default function Home() {
                   {/* Grid Item 2: Bank */}
                   <div 
                     onClick={() => {
-                      setCurrentScreen("courses");
-                      setSelectedCourseCategory("Bank");
+                      const course = ALL_COURSES_DATA.find(c => c.id === "bank");
+                      setSelectedCourseDetail(course);
+                      setPreviousScreen("home");
+                      setCurrentScreen("course-detail");
                       if (soundEnabled) quizAudio.playClick();
                     }}
                     className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
@@ -657,8 +693,10 @@ export default function Home() {
                   {/* Grid Item 3: Primary */}
                   <div 
                     onClick={() => {
-                      setCurrentScreen("courses");
-                      setSelectedCourseCategory("Teachers");
+                      const course = ALL_COURSES_DATA.find(c => c.id === "primary");
+                      setSelectedCourseDetail(course);
+                      setPreviousScreen("home");
+                      setCurrentScreen("course-detail");
                       if (soundEnabled) quizAudio.playClick();
                     }}
                     className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
@@ -672,8 +710,10 @@ export default function Home() {
                   {/* Grid Item 4: NTRCA */}
                   <div 
                     onClick={() => {
-                      setCurrentScreen("courses");
-                      setSelectedCourseCategory("Teachers");
+                      const course = ALL_COURSES_DATA.find(c => c.id === "ntrca");
+                      setSelectedCourseDetail(course);
+                      setPreviousScreen("home");
+                      setCurrentScreen("course-detail");
                       if (soundEnabled) quizAudio.playClick();
                     }}
                     className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
@@ -687,8 +727,10 @@ export default function Home() {
                   {/* Grid Item 5: PSC */}
                   <div 
                     onClick={() => {
-                      setCurrentScreen("courses");
-                      setSelectedCourseCategory("Other");
+                      const course = ALL_COURSES_DATA.find(c => c.id === "psc");
+                      setSelectedCourseDetail(course);
+                      setPreviousScreen("home");
+                      setCurrentScreen("course-detail");
                       if (soundEnabled) quizAudio.playClick();
                     }}
                     className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
@@ -702,8 +744,10 @@ export default function Home() {
                   {/* Grid Item 6: All Job */}
                   <div 
                     onClick={() => {
-                      setCurrentScreen("courses");
-                      setSelectedCourseCategory("All");
+                      const course = ALL_COURSES_DATA.find(c => c.id === "all_job");
+                      setSelectedCourseDetail(course);
+                      setPreviousScreen("home");
+                      setCurrentScreen("course-detail");
                       if (soundEnabled) quizAudio.playClick();
                     }}
                     className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
@@ -776,31 +820,61 @@ export default function Home() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Preparation Hub Item 1: Bangla & English */}
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Preparation Hub Item 1: Bangla */}
                   <div 
-                    onClick={() => startQuizFlow("Bangla & English Mastery", "Grammar & Literature", BANGLA_ENGLISH_QUESTIONS)}
-                    className="bg-white border border-slate-100 rounded-3xl p-5 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-95"
+                    onClick={() => {
+                      startQuizFlow("Bangla Quiz", "Language & Literature", BANGLA_QUESTIONS);
+                      if (soundEnabled) quizAudio.playClick();
+                    }}
+                    className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
                   >
-                    <div className="w-12 h-12 bg-[#F1F5F9] rounded-2xl flex items-center justify-center text-slate-700 mb-3">
-                      <BookOpen className="w-6 h-6 stroke-[2.2px]" />
+                    <div className="w-10 h-10 bg-[#FFF1E6] rounded-xl flex items-center justify-center text-orange-600 shrink-0">
+                      <BookOpen className="w-5 h-5 stroke-[2.2px]" />
                     </div>
-                    <span className="text-xs font-extrabold text-[#334155] leading-snug">
-                      Bangla & English
-                    </span>
+                    <span className="text-xs font-extrabold text-[#334155] tracking-wide">Bangla</span>
                   </div>
 
-                  {/* Preparation Hub Item 2: Math & Science */}
+                  {/* Preparation Hub Item 2: English */}
                   <div 
-                    onClick={() => startQuizFlow("Quantitative Aptitude & Science", "Math shortcuts & Physics", MATH_SCIENCE_QUESTIONS)}
-                    className="bg-white border border-slate-100 rounded-3xl p-5 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-95"
+                    onClick={() => {
+                      startQuizFlow("English Quiz", "Grammar & Vocabulary", ENGLISH_QUESTIONS);
+                      if (soundEnabled) quizAudio.playClick();
+                    }}
+                    className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
                   >
-                    <div className="w-12 h-12 bg-[#E6F0FA] rounded-2xl flex items-center justify-center text-blue-600 mb-3">
-                      <Calculator className="w-6 h-6 stroke-[2.2px]" />
+                    <div className="w-10 h-10 bg-[#F3E8FF] rounded-xl flex items-center justify-center text-purple-600 shrink-0">
+                      <Globe className="w-5 h-5 stroke-[2.2px]" />
                     </div>
-                    <span className="text-xs font-extrabold text-[#334155] leading-snug">
-                      Math & Science
-                    </span>
+                    <span className="text-xs font-extrabold text-[#334155] tracking-wide">English</span>
+                  </div>
+
+                  {/* Preparation Hub Item 3: Math */}
+                  <div 
+                    onClick={() => {
+                      startQuizFlow("Mathematics Quiz", "Quantitative Aptitude", MATH_QUESTIONS);
+                      if (soundEnabled) quizAudio.playClick();
+                    }}
+                    className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
+                  >
+                    <div className="w-10 h-10 bg-[#E6F0FA] rounded-xl flex items-center justify-center text-blue-600 shrink-0">
+                      <Calculator className="w-5 h-5 stroke-[2.2px]" />
+                    </div>
+                    <span className="text-xs font-extrabold text-[#334155] tracking-wide">Math</span>
+                  </div>
+
+                  {/* Preparation Hub Item 4: Science */}
+                  <div 
+                    onClick={() => {
+                      startQuizFlow("Science Quiz", "Anatomy & Environment", SCIENCE_QUESTIONS);
+                      if (soundEnabled) quizAudio.playClick();
+                    }}
+                    className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
+                  >
+                    <div className="w-10 h-10 bg-[#EBF7EE] rounded-xl flex items-center justify-center text-green-600 shrink-0">
+                      <Sparkles className="w-5 h-5 stroke-[2.2px]" />
+                    </div>
+                    <span className="text-xs font-extrabold text-[#334155] tracking-wide">Science</span>
                   </div>
                 </div>
               </div>
@@ -1169,17 +1243,14 @@ export default function Home() {
                           
                           <button 
                             onClick={() => {
-                              if (course.id === "math_science") {
-                                startQuizFlow("Math & Science Revision", "Quick Practice Session", MATH_SCIENCE_QUESTIONS);
-                              } else if (course.id === "bangla_english") {
-                                startQuizFlow("Bangla & English Mastery", "Quick Practice Session", BANGLA_ENGLISH_QUESTIONS);
-                              } else {
-                                startQuizFlow(course.title, "Syllabus mock", QUIZ_QUESTIONS);
-                              }
+                              setSelectedCourseDetail(course);
+                              setPreviousScreen("courses");
+                              setCurrentScreen("course-detail");
+                              if (soundEnabled) quizAudio.playClick();
                             }}
-                            className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-[10px] px-4 py-2 rounded-xl active:scale-95 transition-all cursor-pointer"
+                            className="bg-[#FF6A00] hover:bg-orange-600 text-white font-extrabold text-[10px] px-4.5 py-2.5 rounded-xl active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
                           >
-                            Start Mock Quiz
+                            Enter Course <ChevronRight className="w-3.5 h-3.5 stroke-[2.5px]" />
                           </button>
                         </div>
                       </div>
@@ -1187,6 +1258,175 @@ export default function Home() {
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* COURSE DETAIL SCREEN                                      */}
+          {/* ========================================================= */}
+          {currentScreen === "course-detail" && selectedCourseDetail && (
+            <div className="p-5 space-y-5 animate-fade-in pb-10">
+              
+              {/* Back Button & Title */}
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => {
+                    setCurrentScreen(previousScreen);
+                    if (soundEnabled) quizAudio.playClick();
+                  }}
+                  className="p-2 bg-white hover:bg-slate-100 rounded-xl text-slate-700 shadow-sm transition-all active:scale-90"
+                >
+                  <ArrowLeft className="w-5 h-5 stroke-[2.5px]" />
+                </button>
+                <div className="space-y-0.5">
+                  <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#FF6A00] bg-orange-50 px-2.5 py-0.5 rounded-full">
+                    {selectedCourseDetail.category} Course
+                  </span>
+                  <h3 className="font-extrabold text-sm text-slate-900 tracking-tight leading-none mt-1">
+                    কোর্সের বিষয়বস্তু
+                  </h3>
+                </div>
+              </div>
+
+              {/* Course Main Card */}
+              <div className="bg-white border border-slate-100 rounded-[2rem] p-5 shadow-sm space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className={`w-14 h-14 ${selectedCourseDetail.bg} ${selectedCourseDetail.iconColor} rounded-2xl flex items-center justify-center shrink-0 shadow-inner`}>
+                    {(() => {
+                      const IconComponent = selectedCourseDetail.icon;
+                      return <IconComponent className="w-7 h-7 stroke-[2.2px]" />;
+                    })()}
+                  </div>
+                  <div>
+                    <h4 className="text-base font-black text-slate-800 leading-snug">
+                      {selectedCourseDetail.title}
+                    </h4>
+                    <span className="text-[10px] font-bold text-slate-400">
+                      সহজ গাইড ও স্পেশাল মক টেস্ট
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                  {selectedCourseDetail.desc}
+                </p>
+              </div>
+
+              {/* Grid Section of Tests */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider pl-1">
+                  মডেল টেস্ট সমূহ (Select Exam)
+                </h4>
+
+                <div className="grid grid-cols-1 gap-3">
+                  
+                  {/* Test 1: Weekly Model Test */}
+                  <div 
+                    onClick={() => {
+                      let qList = QUIZ_QUESTIONS;
+                      if (selectedCourseDetail.id === "bcs") {
+                        qList = [...BANGLA_QUESTIONS, ...ENGLISH_QUESTIONS, ...MATH_QUESTIONS, ...SCIENCE_QUESTIONS];
+                      } else if (selectedCourseDetail.id === "bank") {
+                        qList = [...MATH_QUESTIONS, ...ENGLISH_QUESTIONS];
+                      } else if (selectedCourseDetail.id === "primary") {
+                        qList = [...BANGLA_QUESTIONS, ...MATH_QUESTIONS];
+                      } else if (selectedCourseDetail.id === "ntrca") {
+                        qList = [...BANGLA_QUESTIONS, ...ENGLISH_QUESTIONS];
+                      } else if (selectedCourseDetail.id === "psc") {
+                        qList = QUIZ_QUESTIONS;
+                      } else if (selectedCourseDetail.id === "bangla_english") {
+                        qList = [...BANGLA_QUESTIONS, ...ENGLISH_QUESTIONS];
+                      } else if (selectedCourseDetail.id === "math_science") {
+                        qList = [...MATH_QUESTIONS, ...SCIENCE_QUESTIONS];
+                      } else {
+                        qList = [...BANGLA_QUESTIONS, ...ENGLISH_QUESTIONS, ...MATH_QUESTIONS, ...SCIENCE_QUESTIONS];
+                      }
+                      startQuizFlow(`${selectedCourseDetail.title} - Weekly Model Test`, "সাপ্তাহিক স্পেশাল মডেল টেস্ট", qList);
+                      if (soundEnabled) quizAudio.playClick();
+                    }}
+                    className="bg-white border border-slate-100 hover:border-[#FF6A00]/40 rounded-[2rem] p-4.5 flex items-center justify-between shadow-sm cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+                        <ClipboardList className="w-5 h-5 stroke-[2.2px]" />
+                      </div>
+                      <div className="text-left space-y-0.5">
+                        <h5 className="text-xs font-black text-slate-800 leading-snug">Weekly Model Test</h5>
+                        <p className="text-[10px] font-bold text-slate-400">সাপ্তাহিক স্পেশাল সিলেবাস মক</p>
+                      </div>
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded-xl text-slate-400">
+                      <Play className="w-3.5 h-3.5 fill-current text-indigo-500" />
+                    </div>
+                  </div>
+
+                  {/* Test 2: Daily Model Test */}
+                  <div 
+                    onClick={() => {
+                      let qList = QUIZ_QUESTIONS;
+                      if (selectedCourseDetail.id === "bcs") {
+                        qList = QUIZ_QUESTIONS;
+                      } else if (selectedCourseDetail.id === "bank") {
+                        qList = MATH_QUESTIONS;
+                      } else if (selectedCourseDetail.id === "primary") {
+                        qList = SCIENCE_QUESTIONS;
+                      } else if (selectedCourseDetail.id === "ntrca") {
+                        qList = [...MATH_QUESTIONS, ...SCIENCE_QUESTIONS];
+                      } else if (selectedCourseDetail.id === "psc") {
+                        qList = BANGLA_QUESTIONS;
+                      } else if (selectedCourseDetail.id === "bangla_english") {
+                        qList = BANGLA_QUESTIONS;
+                      } else if (selectedCourseDetail.id === "math_science") {
+                        qList = MATH_QUESTIONS;
+                      } else {
+                        qList = QUIZ_QUESTIONS;
+                      }
+                      startQuizFlow(`${selectedCourseDetail.title} - Daily Model Test`, "দৈনিক স্পেশাল কুইজ ও সমাধান", qList);
+                      if (soundEnabled) quizAudio.playClick();
+                    }}
+                    className="bg-white border border-slate-100 hover:border-[#FF6A00]/40 rounded-[2rem] p-4.5 flex items-center justify-between shadow-sm cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-11 h-11 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center shrink-0">
+                        <Clock className="w-5 h-5 stroke-[2.2px]" />
+                      </div>
+                      <div className="text-left space-y-0.5">
+                        <h5 className="text-xs font-black text-slate-800 leading-snug">Daily Model Test</h5>
+                        <p className="text-[10px] font-bold text-slate-400">দৈনিক প্রস্তুতিমূলক স্পিড কুইজ</p>
+                      </div>
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded-xl text-slate-400">
+                      <Play className="w-3.5 h-3.5 fill-current text-rose-500" />
+                    </div>
+                  </div>
+
+                  {/* Special Option: BCS Health Course (Only for BCS) */}
+                  {selectedCourseDetail.id === "bcs" && (
+                    <div 
+                      onClick={() => {
+                        startQuizFlow("BCS Health Course", "স্বাস্থ্য ক্যাডার ও চিকিৎসা বিজ্ঞান স্পেশাল মক", SCIENCE_QUESTIONS);
+                        if (soundEnabled) quizAudio.playClick();
+                      }}
+                      className="bg-gradient-to-r from-teal-500 to-emerald-500 border-0 rounded-[2rem] p-5 flex items-center justify-between text-white shadow-md shadow-emerald-500/10 hover:shadow-lg cursor-pointer transition-all active:scale-[0.98]"
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center shrink-0 text-white">
+                          <Award className="w-5 h-5 stroke-[2.2px]" />
+                        </div>
+                        <div className="text-left space-y-0.5">
+                          <h5 className="text-xs font-black leading-snug">BCS Health Course</h5>
+                          <p className="text-[10px] font-bold text-teal-100">স্বাস্থ্য ক্যাডার ও চিকিৎসা বিজ্ঞান স্পেশাল মক</p>
+                        </div>
+                      </div>
+                      <div className="bg-white/20 p-2 rounded-xl text-white">
+                        <ChevronRight className="w-4 h-4 stroke-[3px]" />
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              </div>
+
             </div>
           )}
 
@@ -1355,12 +1595,12 @@ export default function Home() {
                       </div>
                       <div>
                         <h4 className="text-xs font-black text-slate-800 leading-snug">Math Practice Series #12</h4>
-                        <p className="text-[9px] font-bold text-slate-400 mt-0.5">5 Questions • Equations & Geometry</p>
+                        <p className="text-[9px] font-bold text-slate-400 mt-0.5">3 Questions • Equations & Geometry</p>
                       </div>
                     </div>
                     
                     <button 
-                      onClick={() => startQuizFlow("Math practice #12", "Equations & Geometry", MATH_SCIENCE_QUESTIONS)}
+                      onClick={() => startQuizFlow("Math practice #12", "Equations & Geometry", MATH_QUESTIONS)}
                       className="p-1.5 hover:bg-slate-50 text-blue-600 rounded-lg active:scale-90 transition-all cursor-pointer"
                     >
                       <Play className="w-4 h-4 fill-current" />
@@ -1375,12 +1615,12 @@ export default function Home() {
                       </div>
                       <div>
                         <h4 className="text-xs font-black text-slate-800 leading-snug">Bangla & English Literature Mock</h4>
-                        <p className="text-[9px] font-bold text-slate-400 mt-0.5">5 Questions • Grammar & authors</p>
+                        <p className="text-[9px] font-bold text-slate-400 mt-0.5">6 Questions • Grammar & authors</p>
                       </div>
                     </div>
                     
                     <button 
-                      onClick={() => startQuizFlow("Bangla & English Mastery", "Grammar & Authors", BANGLA_ENGLISH_QUESTIONS)}
+                      onClick={() => startQuizFlow("Bangla & English Mastery", "Grammar & Authors", [...BANGLA_QUESTIONS, ...ENGLISH_QUESTIONS])}
                       className="p-1.5 hover:bg-slate-50 text-purple-600 rounded-lg active:scale-90 transition-all cursor-pointer"
                     >
                       <Play className="w-4 h-4 fill-current" />
@@ -1395,12 +1635,12 @@ export default function Home() {
                       </div>
                       <div>
                         <h4 className="text-xs font-black text-slate-800 leading-snug">General Science Mock</h4>
-                        <p className="text-[9px] font-bold text-slate-400 mt-0.5">3 Questions • Anatomy & Environment</p>
+                        <p className="text-[9px] font-bold text-slate-400 mt-0.5">5 Questions • Anatomy & Environment</p>
                       </div>
                     </div>
                     
                     <button 
-                      onClick={() => startQuizFlow("General Science Mock", "Anatomy & Climate", GENERAL_SCIENCE_QUESTIONS)}
+                      onClick={() => startQuizFlow("General Science Mock", "Anatomy & Climate", SCIENCE_QUESTIONS)}
                       className="p-1.5 hover:bg-slate-50 text-green-600 rounded-lg active:scale-90 transition-all cursor-pointer"
                     >
                       <Play className="w-4 h-4 fill-current" />
