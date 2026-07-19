@@ -760,43 +760,50 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* General Quiz Game Live Banner (Gradient Orange/Red matching image) */}
-              <div className="bg-gradient-to-r from-[#FF6B35] via-[#FF5F25] to-[#FF4E00] rounded-[2rem] p-6 text-white relative overflow-hidden shadow-lg shadow-orange-500/25">
-                {/* Top background decorative grid elements */}
-                <div className="absolute top-[-50px] right-[-50px] w-40 h-40 bg-white/10 rounded-full blur-2xl" />
+              {/* General Quiz Game Live Banner (Gradient Orange/Red matching image) - Compact Redesign */}
+              <div className="bg-gradient-to-br from-[#FF6B35] to-[#FF4E00] rounded-3xl p-5 text-white relative overflow-hidden shadow-md shadow-orange-500/15">
+                {/* Subtle background glow */}
+                <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
+                <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-black/10 rounded-full blur-lg pointer-events-none" />
                 
-                {/* Header elements */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="bg-white/20 px-3 py-1 rounded-full text-[10px] font-extrabold tracking-widest uppercase">
-                      LIVE NOW
+                {/* Header elements: Live... on Left, Active Users on Right */}
+                <div className="flex items-center justify-between">
+                  {/* Left corner: Live... */}
+                  <div className="flex items-center gap-1.5 bg-white/15 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
                     </span>
-                    <span className="text-xs font-medium text-white/90">
-                      Daily Challenge
+                    <span>Live</span>
+                    <span className="inline-flex gap-0.5 ml-0.5 items-end h-1.5 pb-[2px]">
+                      <span className="w-[3px] h-[3px] bg-white rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                      <span className="w-[3px] h-[3px] bg-white rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                      <span className="w-[3px] h-[3px] bg-white rounded-full animate-bounce"></span>
                     </span>
                   </div>
                   
-                  <div className="flex items-center gap-1 bg-black/10 px-2.5 py-1 rounded-full">
-                    <Users className="w-3.5 h-3.5 text-white" />
-                    <span className="text-[10px] font-bold">1.2k Active</span>
+                  {/* Right corner: Active Users */}
+                  <div className="flex items-center gap-1.5 bg-black/15 px-3 py-1 rounded-full text-[10px] font-extrabold">
+                    <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse mr-0.5"></span>
+                    <Users className="w-3 h-3 text-white/95" />
+                    <span>1,420 playing</span>
                   </div>
                 </div>
 
-                {/* Main Content */}
-                <div className="space-y-1.5 mb-5">
-                  <h2 className="text-2xl font-black tracking-tight">
-                    General Quiz Game
-                  </h2>
-                  <p className="text-white/80 text-xs font-medium leading-relaxed max-w-[280px]">
-                    Test your knowledge on 45th BCS International Affairs.
-                  </p>
-                </div>
+                {/* Title and Button cleanly organized to save space */}
+                <div className="mt-4 flex items-center justify-between gap-4">
+                  <div className="space-y-0.5">
+                    <h3 className="text-lg font-black tracking-tight leading-none">
+                      Live Quiz Game
+                    </h3>
+                    <span className="text-orange-100 text-[9px] font-bold uppercase tracking-wider block">
+                      Daily Speed MCQ Challenge
+                    </span>
+                  </div>
 
-                {/* CTA Start Quiz Button */}
-                <div className="flex justify-center">
                   <button 
-                    onClick={() => startQuizFlow("General Quiz Game", "45th BCS International Affairs", isUsingFallback ? QUIZ_QUESTIONS : questions)}
-                    className="bg-white hover:bg-slate-50 text-[#FF5F25] font-extrabold px-8 py-3.5 rounded-full shadow-md hover:shadow-lg hover:scale-[1.03] active:scale-95 transition-all text-sm cursor-pointer"
+                    onClick={() => startQuizFlow("Live Quiz Game", "Daily Speed Challenge", isUsingFallback ? QUIZ_QUESTIONS : questions)}
+                    className="bg-white hover:bg-orange-50 text-[#FF4E00] font-extrabold text-xs px-5 py-2.5 rounded-2xl shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer shrink-0"
                   >
                     Start Quiz
                   </button>
