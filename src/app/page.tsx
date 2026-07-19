@@ -33,7 +33,11 @@ import {
   Flame,
   Clock,
   Sparkles,
-  Bookmark
+  Bookmark,
+  Settings,
+  LogOut,
+  LogIn,
+  Package
 } from "lucide-react";
 import { QUIZ_QUESTIONS, Question } from "../data";
 import { getSupabase } from "../lib/supabase";
@@ -171,6 +175,12 @@ export default function Home() {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [selectedCourseDetail, setSelectedCourseDetail] = useState<any | null>(null);
   const [previousScreen, setPreviousScreen] = useState<"home" | "quiz" | "courses" | "routine" | "tests" | "profile" | "course-detail">("home");
+  
+  // Drawer & Overlay States
+  const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+  const [selectedLanguage, setSelectedLanguage] = useState<"BN" | "EN">("BN");
+  const [activeDrawerModal, setActiveDrawerModal] = useState<"none" | "package" | "bookstore" | "language" | "settings" | "ourapps" | "contact">("none");
   
   // Database & Loaded Questions State
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -563,14 +573,17 @@ export default function Home() {
                   if (currentScreen === "course-detail") {
                     setCurrentScreen(previousScreen);
                   } else {
-                    setCurrentScreen("profile");
+                    setDrawerOpen(!drawerOpen);
                   }
                   if (soundEnabled) quizAudio.playClick();
                 }}
-                className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 active:scale-95 transition-all"
+                className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 active:scale-95 transition-all z-50 relative"
+                id="menu-toggle-button"
               >
                 {currentScreen === "course-detail" ? (
                   <ArrowLeft className="w-6 h-6 stroke-[2.2px]" />
+                ) : drawerOpen ? (
+                  <X className="w-6 h-6 stroke-[2.2px] text-orange-600 animate-spin-once" />
                 ) : (
                   <Menu className="w-6 h-6 stroke-[2.2px]" />
                 )}
@@ -1672,13 +1685,15 @@ export default function Home() {
               {/* Avatar identity card */}
               <div className="bg-white border border-slate-100 rounded-[2rem] p-5 shadow-sm flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-r from-[#FF6B35] to-[#FF4E00] flex items-center justify-center text-white font-black text-2xl shadow-md">
-                  M
+                  {isLoggedIn ? "M" : "G"}
                 </div>
                 <div className="space-y-0.5">
-                  <h4 className="text-sm font-black text-slate-800 leading-none">mobileseba247</h4>
-                  <p className="text-[11px] text-slate-400 font-medium">mobileseba247@gmail.com</p>
-                  <span className="inline-block text-[8px] font-bold bg-[#EBF7EE] text-green-600 px-2 py-0.5 rounded uppercase mt-1">
-                    Premium Subscriber
+                  <h4 className="text-sm font-black text-slate-800 leading-none">{isLoggedIn ? "mobileseba247" : "Guest User"}</h4>
+                  <p className="text-[11px] text-slate-400 font-medium">{isLoggedIn ? "mobileseba247@gmail.com" : "guest@jobmaster.com"}</p>
+                  <span className={`inline-block text-[8px] font-bold px-2 py-0.5 rounded uppercase mt-1 ${
+                    isLoggedIn ? "bg-[#EBF7EE] text-green-600" : "bg-slate-100 text-slate-500"
+                  }`}>
+                    {isLoggedIn ? "Premium Subscriber" : "Guest Account"}
                   </span>
                 </div>
               </div>
@@ -1853,6 +1868,529 @@ export default function Home() {
               </span>
             </button>
           </nav>
+        )}
+
+        {/* Backdrop overlay for Drawer */}
+        <div 
+          onClick={() => {
+            setDrawerOpen(false);
+            if (soundEnabled) quizAudio.playClick();
+          }}
+          className={`absolute inset-0 bg-slate-900/60 backdrop-blur-xs z-40 transition-all duration-300 ease-in-out ${
+            drawerOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
+          id="drawer-backdrop"
+        />
+
+        {/* Drawer Panel */}
+        <div 
+          className={`absolute top-0 left-0 bottom-0 h-full bg-white shadow-2xl z-50 transition-all duration-300 ease-in-out transform ${
+            drawerOpen ? "translate-x-0" : "-translate-x-full"
+          } w-[280px] flex flex-col border-r border-slate-100`}
+          id="app-drawer-panel"
+        >
+          {/* Drawer Header */}
+          <div className="bg-gradient-to-r from-[#FF6A00] to-[#FF4E00] p-5 pt-8 text-white flex flex-col gap-3 relative shrink-0">
+            <button 
+              onClick={() => {
+                setDrawerOpen(false);
+                if (soundEnabled) quizAudio.playClick();
+              }}
+              className="absolute top-4 right-4 p-1 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all active:scale-95"
+              id="drawer-close-button"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Profile Avatar inside Drawer */}
+            <div className="flex items-center gap-3 mt-2">
+              <div className="w-12 h-12 rounded-full bg-white text-[#FF4E00] font-black text-xl flex items-center justify-center shadow-inner">
+                {isLoggedIn ? "M" : "G"}
+              </div>
+              <div className="flex flex-col">
+                <span className="font-extrabold text-sm tracking-tight leading-tight">
+                  {isLoggedIn ? "mobileseba247" : "Guest User"}
+                </span>
+                <span className="text-[10px] text-white/80 font-semibold">
+                  {isLoggedIn ? "mobileseba247@gmail.com" : "guest@jobmaster.com"}
+                </span>
+                <span className={`inline-block text-[8px] font-black w-max px-1.5 py-0.5 rounded uppercase mt-1 ${
+                  isLoggedIn ? "bg-white/25 text-white" : "bg-black/20 text-white/70"
+                }`}>
+                  {isLoggedIn ? "Premium Member" : "Guest Account"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Drawer Menu Items */}
+          <div className="flex-1 overflow-y-auto py-3 px-3.5 space-y-1 bg-slate-50/50">
+            {/* 1. Profile */}
+            <button
+              onClick={() => {
+                setCurrentScreen("profile");
+                setDrawerOpen(false);
+                if (soundEnabled) quizAudio.playClick();
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                currentScreen === "profile" 
+                  ? "bg-orange-50 text-[#FF6A00] font-bold" 
+                  : "text-slate-600 hover:bg-slate-100 font-semibold"
+              } text-xs`}
+              id="drawer-item-profile"
+            >
+              <CircleUser className={`w-4 h-4 ${currentScreen === "profile" ? "text-[#FF6A00]" : "text-slate-400"}`} />
+              <span>Profile</span>
+            </button>
+
+            {/* 2. Package */}
+            <button
+              onClick={() => {
+                setActiveDrawerModal("package");
+                setDrawerOpen(false);
+                if (soundEnabled) quizAudio.playClick();
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all text-slate-600 hover:bg-slate-100 font-semibold text-xs"
+              id="drawer-item-package"
+            >
+              <Package className="w-4 h-4 text-slate-400" />
+              <span>Package</span>
+            </button>
+
+            {/* 3. Book Store */}
+            <button
+              onClick={() => {
+                setActiveDrawerModal("bookstore");
+                setDrawerOpen(false);
+                if (soundEnabled) quizAudio.playClick();
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all text-slate-600 hover:bg-slate-100 font-semibold text-xs"
+              id="drawer-item-bookstore"
+            >
+              <BookOpen className="w-4 h-4 text-slate-400" />
+              <span>Book Store</span>
+            </button>
+
+            {/* 4. Language */}
+            <button
+              onClick={() => {
+                setActiveDrawerModal("language");
+                setDrawerOpen(false);
+                if (soundEnabled) quizAudio.playClick();
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all text-slate-600 hover:bg-slate-100 font-semibold text-xs"
+              id="drawer-item-language"
+            >
+              <Globe className="w-4 h-4 text-slate-400" />
+              <span>Language ({selectedLanguage === "BN" ? "বাংলা" : "English"})</span>
+            </button>
+
+            {/* 5. Settings */}
+            <button
+              onClick={() => {
+                setActiveDrawerModal("settings");
+                setDrawerOpen(false);
+                if (soundEnabled) quizAudio.playClick();
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all text-slate-600 hover:bg-slate-100 font-semibold text-xs"
+              id="drawer-item-settings"
+            >
+              <Settings className="w-4 h-4 text-slate-400" />
+              <span>Settings</span>
+            </button>
+
+            {/* 6. Our Apps */}
+            <button
+              onClick={() => {
+                setActiveDrawerModal("ourapps");
+                setDrawerOpen(false);
+                if (soundEnabled) quizAudio.playClick();
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all text-slate-600 hover:bg-slate-100 font-semibold text-xs"
+              id="drawer-item-ourapps"
+            >
+              <Sparkles className="w-4 h-4 text-slate-400" />
+              <span>Our Apps</span>
+            </button>
+
+            {/* 7. Contact Us */}
+            <button
+              onClick={() => {
+                setActiveDrawerModal("contact");
+                setDrawerOpen(false);
+                if (soundEnabled) quizAudio.playClick();
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all text-slate-600 hover:bg-slate-100 font-semibold text-xs"
+              id="drawer-item-contact"
+            >
+              <HelpCircle className="w-4 h-4 text-slate-400" />
+              <span>Contact Us</span>
+            </button>
+
+            {/* 8. Settings (duplicate as requested: "6. Settings") */}
+            <button
+              onClick={() => {
+                setActiveDrawerModal("settings");
+                setDrawerOpen(false);
+                if (soundEnabled) quizAudio.playClick();
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all text-slate-600 hover:bg-slate-100 font-semibold text-xs border-t border-slate-100/50 mt-1 pt-2"
+              id="drawer-item-settings-dup"
+            >
+              <Settings className="w-4 h-4 text-slate-400" />
+              <span>6. Settings</span>
+            </button>
+
+            {/* 9. Logout/LogIn (listed as "6. Logout/LogIn" in prompt) */}
+            <button
+              onClick={() => {
+                const nextState = !isLoggedIn;
+                setIsLoggedIn(nextState);
+                setDrawerOpen(false);
+                if (soundEnabled) {
+                  if (nextState) quizAudio.playSuccess();
+                  else quizAudio.playError();
+                }
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all font-semibold text-xs mt-1 ${
+                isLoggedIn ? "text-red-600 hover:bg-red-50" : "text-[#FF6A00] hover:bg-orange-50"
+              }`}
+              id="drawer-item-auth"
+            >
+              {isLoggedIn ? (
+                <>
+                  <LogOut className="w-4 h-4 text-red-400" />
+                  <span>6. Logout</span>
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-4 h-4 text-[#FF6A00]" />
+                  <span>6. LogIn</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Drawer Footer copyright */}
+          <div className="p-4 border-t border-slate-100 bg-slate-50 shrink-0 text-center">
+            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Job Master App v2.4</span>
+            <span className="text-[8px] text-slate-400 mt-0.5 block font-medium">All Rights Reserved © 2026</span>
+          </div>
+        </div>
+
+        {/* Modal views for Drawer Menus */}
+        {activeDrawerModal !== "none" && (
+          <div 
+            className="absolute inset-0 bg-slate-900/70 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in"
+            id="drawer-modal-overlay"
+          >
+            <div 
+              className="w-full max-w-[320px] bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[80%] animate-scale-up"
+              id="drawer-modal-container"
+            >
+              {/* Modal Header */}
+              <div className="bg-slate-50 border-b border-slate-100 px-4 py-3 flex items-center justify-between">
+                <span className="text-[10px] font-extrabold text-[#1E293B] uppercase tracking-wider">
+                  {activeDrawerModal === "package" && "Premium Packages"}
+                  {activeDrawerModal === "bookstore" && "Job Master Book Store"}
+                  {activeDrawerModal === "language" && "Select Language"}
+                  {activeDrawerModal === "settings" && "Application Settings"}
+                  {activeDrawerModal === "ourapps" && "More Apps by Us"}
+                  {activeDrawerModal === "contact" && "Contact Support"}
+                </span>
+                <button 
+                  onClick={() => {
+                    setActiveDrawerModal("none");
+                    if (soundEnabled) quizAudio.playClick();
+                  }}
+                  className="p-1 rounded-lg hover:bg-slate-200 text-slate-400 transition-all active:scale-95"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-4 overflow-y-auto space-y-3.5">
+                
+                {/* 1. PACKAGE MODAL */}
+                {activeDrawerModal === "package" && (
+                  <div className="space-y-2.5">
+                    <p className="text-slate-500 text-[10px] leading-relaxed font-semibold">
+                      Upgrade to unlock advanced model questions, custom schedules, and professional analytical tools.
+                    </p>
+                    
+                    {/* Package 1 */}
+                    <div className="border border-slate-100 bg-slate-50/50 rounded-xl p-2.5 flex items-center justify-between">
+                      <div>
+                        <h4 className="text-[11px] font-black text-slate-800">Basic Starter</h4>
+                        <p className="text-[9px] text-slate-400 font-semibold mt-0.5">Free Access • Standard MCQs</p>
+                      </div>
+                      <span className="text-[9px] font-black text-slate-400 bg-slate-200 px-2 py-0.5 rounded-full uppercase">Active</span>
+                    </div>
+
+                    {/* Package 2 */}
+                    <div className="border-2 border-orange-500 bg-orange-50/10 rounded-xl p-2.5 flex items-center justify-between relative overflow-hidden">
+                      <div className="absolute top-0 right-0 bg-orange-500 text-white text-[7px] font-extrabold px-1.5 py-0.5 rounded-bl-lg uppercase tracking-wider">Pop</div>
+                      <div>
+                        <h4 className="text-[11px] font-black text-slate-800">BCS Premium Pro</h4>
+                        <p className="text-[9px] text-orange-600 font-bold mt-0.5">৳৫০০ / Year • Full Exam Sync</p>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          alert("Thank you for choosing BCS Premium Pro! Subscriptions are simulated in the preview environment.");
+                          setActiveDrawerModal("none");
+                        }}
+                        className="text-[9px] font-black text-white bg-orange-500 hover:bg-orange-600 px-2.5 py-1 rounded-lg shadow-sm transition-all active:scale-95"
+                      >
+                        Buy
+                      </button>
+                    </div>
+
+                    {/* Package 3 */}
+                    <div className="border border-slate-100 bg-slate-50/50 rounded-xl p-2.5 flex items-center justify-between">
+                      <div>
+                        <h4 className="text-[11px] font-black text-slate-800">Primary Teacher Special</h4>
+                        <p className="text-[9px] text-slate-500 font-bold mt-0.5">৳৩০০ / Year • Papers Boost</p>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          alert("Thank you for choosing Primary Teacher Special! Subscriptions are simulated in the preview.");
+                          setActiveDrawerModal("none");
+                        }}
+                        className="text-[9px] font-black text-slate-700 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg transition-all active:scale-95"
+                      >
+                        Upgrade
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. BOOK STORE MODAL */}
+                {activeDrawerModal === "bookstore" && (
+                  <div className="space-y-2.5">
+                    <p className="text-slate-500 text-[10px] leading-relaxed font-semibold">
+                      Buy official physical and digital guide books curated by experts. Free home delivery across Bangladesh!
+                    </p>
+
+                    {/* Book 1 */}
+                    <div className="flex gap-2.5 items-center border border-slate-100 rounded-xl p-2 bg-slate-50/20">
+                      <div className="w-10 h-13 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center text-white shrink-0 shadow">
+                        <BookOpen className="w-4 h-4 text-white/90" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-[11px] font-black text-slate-800 truncate">BCS MCQ Booster 2026</h4>
+                        <p className="text-[8px] text-slate-400 font-bold mt-0.5">Author: Job Master Panel</p>
+                        <p className="text-[11px] font-black text-orange-500 mt-0.5">৳২৫০</p>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => alert("Book order placed successfully!")}
+                        className="text-[8px] font-black text-white bg-orange-500 px-2 py-1 rounded-md active:scale-95"
+                      >
+                        Order
+                      </button>
+                    </div>
+
+                    {/* Book 2 */}
+                    <div className="flex gap-2.5 items-center border border-slate-100 rounded-xl p-2 bg-slate-50/20">
+                      <div className="w-10 h-13 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center text-white shrink-0 shadow">
+                        <BookOpen className="w-4 h-4 text-white/90" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-[11px] font-black text-slate-800 truncate">Primary Teacher Guide</h4>
+                        <p className="text-[8px] text-slate-400 font-bold mt-0.5">With last 10-year papers</p>
+                        <p className="text-[11px] font-black text-orange-500 mt-0.5">৳১৮০</p>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => alert("Book order placed successfully!")}
+                        className="text-[8px] font-black text-white bg-orange-500 px-2 py-1 rounded-md active:scale-95"
+                      >
+                        Order
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. LANGUAGE MODAL */}
+                {activeDrawerModal === "language" && (
+                  <div className="space-y-2">
+                    <p className="text-slate-500 text-[10px] leading-relaxed font-semibold">
+                      Choose your default system language for standard displays and navigation headers.
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedLanguage("BN");
+                        setActiveDrawerModal("none");
+                        if (soundEnabled) quizAudio.playSuccess();
+                      }}
+                      className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between font-bold text-xs ${
+                        selectedLanguage === "BN" 
+                          ? "border-[#FF6A00] bg-orange-50/10 text-[#FF6A00]" 
+                          : "border-slate-100 bg-slate-50/50 text-slate-700"
+                      }`}
+                    >
+                      <span>বাংলা (Bangla)</span>
+                      {selectedLanguage === "BN" && <Check className="w-3.5 h-3.5" />}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedLanguage("EN");
+                        setActiveDrawerModal("none");
+                        if (soundEnabled) quizAudio.playSuccess();
+                      }}
+                      className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between font-bold text-xs ${
+                        selectedLanguage === "EN" 
+                          ? "border-[#FF6A00] bg-orange-50/10 text-[#FF6A00]" 
+                          : "border-slate-100 bg-slate-50/50 text-slate-700"
+                      }`}
+                    >
+                      <span>English (ইংরেজি)</span>
+                      {selectedLanguage === "EN" && <Check className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                )}
+
+                {/* 4. SETTINGS MODAL */}
+                {activeDrawerModal === "settings" && (
+                  <div className="space-y-2.5">
+                    <p className="text-slate-500 text-[10px] leading-relaxed font-semibold">
+                      Manage sounds, mock limits, and general application preferences easily.
+                    </p>
+
+                    {/* Sound Effects Toggle */}
+                    <div className="flex items-center justify-between p-2 bg-slate-50 rounded-xl border border-slate-100">
+                      <div className="flex items-center gap-2">
+                        {soundEnabled ? <Volume2 className="w-3.5 h-3.5 text-orange-500" /> : <VolumeX className="w-3.5 h-3.5 text-slate-400" />}
+                        <span className="text-[11px] font-bold text-slate-700">Sound Effects</span>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setSoundEnabled(!soundEnabled);
+                          if (typeof window !== "undefined") {
+                            localStorage.setItem("job_master_sound", String(!soundEnabled));
+                          }
+                        }}
+                        className={`w-9 h-5 rounded-full p-0.5 transition-colors ${soundEnabled ? "bg-[#FF6A00]" : "bg-slate-300"}`}
+                      >
+                        <div className={`w-4 h-4 bg-white rounded-full transition-transform ${soundEnabled ? "translate-x-4" : "translate-x-0"}`} />
+                      </button>
+                    </div>
+
+                    {/* Daily Reminders Toggle */}
+                    <div className="flex items-center justify-between p-2 bg-slate-50 rounded-xl border border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <Bell className="w-3.5 h-3.5 text-orange-500" />
+                        <span className="text-[11px] font-bold text-slate-700">Daily Notifications</span>
+                      </div>
+                      <span className="text-[9px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded font-black">ON</span>
+                    </div>
+
+                    {/* Clear storage cache */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm("Are you sure you want to clear your study data cache? This resets your study routine & test logs.")) {
+                          localStorage.clear();
+                          window.location.reload();
+                        }
+                      }}
+                      className="w-full text-center bg-red-50 hover:bg-red-100 text-red-600 font-extrabold text-[10px] py-2 rounded-xl transition-colors mt-2"
+                    >
+                      Reset Local Storage Cache
+                    </button>
+                  </div>
+                )}
+
+                {/* 5. OUR APPS MODAL */}
+                {activeDrawerModal === "ourapps" && (
+                  <div className="space-y-2.5">
+                    <p className="text-slate-500 text-[10px] leading-relaxed font-semibold">
+                      Check out other popular educational platforms developed by our team:
+                    </p>
+
+                    <div className="p-2 border border-slate-100 rounded-xl bg-slate-50/50 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 bg-blue-500 rounded-lg flex items-center justify-center text-white font-black text-xs">G</div>
+                        <div>
+                          <h4 className="text-[10px] font-black text-slate-800">GK Master Pro</h4>
+                          <p className="text-[8px] text-slate-400 font-bold">General Knowledge Daily</p>
+                        </div>
+                      </div>
+                      <span className="text-[8px] font-black text-[#FF6A00] bg-orange-50 px-1.5 py-0.5 rounded-full">Installed</span>
+                    </div>
+
+                    <div className="p-2 border border-slate-100 rounded-xl bg-slate-50/50 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-black text-xs">V</div>
+                        <div>
+                          <h4 className="text-[10px] font-black text-slate-800">Vocabulary builder</h4>
+                          <p className="text-[8px] text-slate-400 font-bold">Bangla to English Cards</p>
+                        </div>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => alert("Redirecting to app store placeholder")}
+                        className="text-[8px] font-black text-white bg-orange-500 px-2 py-1 rounded-md active:scale-95"
+                      >
+                        Install
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 6. CONTACT US MODAL */}
+                {activeDrawerModal === "contact" && (
+                  <div className="space-y-2.5 text-[11px] text-slate-700">
+                    <p className="text-slate-500 text-[10px] leading-relaxed font-semibold">
+                      Need help? Get in touch with our team directly. We are active 24/7!
+                    </p>
+
+                    <div className="space-y-1.5 font-bold text-slate-700">
+                      <div className="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100">
+                        <span className="text-slate-400">Support Email</span>
+                        <a href="mailto:support@jobmaster.com" className="text-orange-600 hover:underline">support@jobmaster.com</a>
+                      </div>
+                      <div className="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100">
+                        <span className="text-slate-400">WhatsApp Hotline</span>
+                        <span className="text-orange-600">+880 1712-345678</span>
+                      </div>
+                    </div>
+
+                    <form 
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        alert("Message sent successfully! Our support agents will contact you shortly.");
+                        setActiveDrawerModal("none");
+                      }}
+                      className="space-y-1.5 pt-2 border-t border-slate-100"
+                    >
+                      <input 
+                        type="text" 
+                        placeholder="Your Query / Issue" 
+                        required 
+                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-orange-500 text-[10px] font-semibold"
+                      />
+                      <button 
+                        type="submit"
+                        className="w-full text-center bg-orange-500 hover:bg-orange-600 text-white font-black text-[10px] py-1.5 rounded-lg shadow transition-all active:scale-95"
+                      >
+                        Send Message
+                      </button>
+                    </form>
+                  </div>
+                )}
+
+              </div>
+            </div>
+          </div>
         )}
 
       </div>
