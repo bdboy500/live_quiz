@@ -8,92 +8,188 @@ export interface Question {
 export const QUIZ_QUESTIONS: Question[] = [
   {
     id: 1,
-    question: "Which of the following is the national fruit of Bangladesh?",
-    options: ["Mango", "Jackfruit", "Litchi", "Coconut"],
-    correctIndex: 1,
+    question: "বাংলাদেশের জাতীয় ফল কোনটি?",
+    options: ["আম", "কাঁঠাল", "লিচু", "নারকেল"],
+    correctIndex: 1
   },
   {
     id: 2,
-    question: "Which planet is known as the Red Planet in our solar system?",
-    options: ["Venus", "Mars", "Jupiter", "Mercury"],
-    correctIndex: 1,
+    question: "সৌরজগতের কোন গ্রহকে লাল গ্রহ বলা হয়?",
+    options: ["শুক্র", "মঙ্গল", "বৃহস্পতি", "বুধ"],
+    correctIndex: 1
   },
   {
     id: 3,
-    question: "What is the chemical symbol for gold?",
-    options: ["Gd", "Ag", "Au", "Fe"],
-    correctIndex: 2,
+    question: "মুজিবনগর সরকার কত তারিখে শপথ গ্রহণ করেছিল?",
+    options: ["১০ এপ্রিল ১৯৭১", "১৭ এপ্রিল ১৯৭১", "১৬ ডিসেম্বর ১৯৭১", "২৫ মার্চ ১৯৭১"],
+    correctIndex: 1
   },
   {
     id: 4,
-    question: "Which is the longest river in Bangladesh?",
-    options: ["Meghna", "Padma", "Jamuna", "Karnafuli"],
-    correctIndex: 0,
+    question: "বাংলাদেশের দীর্ঘতম নদী কোনটি?",
+    options: ["মেঘনা", "পদ্মা", "যমুনা", "সুরমা"],
+    correctIndex: 1
   },
   {
     id: 5,
-    question: "Which scientist proposed the theory of general relativity?",
-    options: ["Isaac Newton", "Albert Einstein", "Nikola Tesla", "Stephen Hawking"],
-    correctIndex: 1,
+    question: "কোন বিজ্ঞানী আপেক্ষিকতার সাধারণ তত্ত্ব প্রস্তাব করেছিলেন?",
+    options: ["আইজ্যাক নিউটন", "অ্যালবার্ট আইনস্টাইন", "নিকোলা টেসলা", "স্টিভেন হকিং"],
+    correctIndex: 1
   },
   {
     id: 6,
-    question: "What is the capital city of Australia?",
-    options: ["Sydney", "Melbourne", "Canberra", "Brisbane"],
-    correctIndex: 2,
+    question: "অস্ট্রেলিয়ার রাজধানী শহর কোনটি?",
+    options: ["সিডনি", "মেলবোর্ন", "ক্যানবেরা", "ব্রিসবেন"],
+    correctIndex: 2
   },
   {
     id: 7,
-    question: "Which component of a computer is considered its 'brain'?",
-    options: ["RAM", "Hard Drive", "GPU", "CPU"],
-    correctIndex: 3,
+    question: "কম্পিউটারের কোন অংশকে তার 'মস্তিষ্ক' বলা হয়?",
+    options: ["র‍্যাম", "হার্ড ড্রাইভ", "গ্রাফিক্স কার্ড", "সিপিইউ"],
+    correctIndex: 3
   },
   {
     id: 8,
-    question: "How many bones are there in an adult human body?",
-    options: ["106", "206", "306", "406"],
-    correctIndex: 1,
+    question: "একজন প্রাপ্তবয়স্ক মানুষের শরীরে কয়টি হাড় থাকে?",
+    options: ["১০৬", "২০৬", "৩০৬", "৪০৬"],
+    correctIndex: 1
   },
   {
     id: 9,
-    question: "Which is the largest ocean on Earth?",
-    options: ["Atlantic Ocean", "Indian Ocean", "Southern Ocean", "Pacific Ocean"],
-    correctIndex: 3,
+    question: "পৃথিবীর বৃহত্তম মহাসাগর কোনটি?",
+    options: ["আটলান্টিক মহাসাগর", "ভারত মহাসাগর", "দক্ষিণ মহাসাগর", "প্রশান্ত মহাসাগর"],
+    correctIndex: 3
   },
   {
     id: 10,
-    question: "In which year did Bangladesh gain its independence?",
-    options: ["1952", "1969", "1971", "1975"],
-    correctIndex: 2,
+    question: "বাংলাদেশ কত সালে স্বাধীনতা লাভ করে?",
+    options: ["১৯৫২", "১৯৬৯", "১৯৭১", "১৯৭৫"],
+    correctIndex: 2
   },
   {
     id: 11,
-    question: "What is the primary gas that makes up Earth's atmosphere?",
-    options: ["Oxygen", "Carbon Dioxide", "Nitrogen", "Hydrogen"],
-    correctIndex: 2,
+    question: "পৃথিবীর বায়ুমণ্ডলে কোন গ্যাসটি সবচেয়ে বেশি পরিমাণে থাকে?",
+    options: ["অক্সিজেন", "কার্বন ডাই অক্সাইড", "নাইট্রোজেন", "হাইড্রোজেন"],
+    correctIndex: 2
   },
   {
     id: 12,
-    question: "Which country is home to the Kangaroos?",
-    options: ["South Africa", "New Zealand", "Australia", "Kenya"],
-    correctIndex: 2,
+    question: "ক্যাঙ্গারু কোন দেশের জাতীয় প্রতীক?",
+    options: ["দক্ষিণ আফ্রিকা", "নিউজিল্যান্ড", "অস্ট্রেলিয়া", "কেনিয়া"],
+    correctIndex: 2
   },
   {
     id: 13,
-    question: "Which is the smallest country in the world by land area?",
-    options: ["Monaco", "Vatican City", "San Marino", "Liechtenstein"],
-    correctIndex: 1,
+    question: "বিশ্বের ক্ষুদ্রতম দেশ কোনটি?",
+    options: ["মোনাকো", "ভ্যাটিকান সিটি", "সান মারিনো", "লিশটেনস্টাইন"],
+    correctIndex: 1
   },
   {
     id: 14,
-    question: "Who wrote the national anthem of Bangladesh?",
-    options: ["Kazi Nazrul Islam", "Rabindranath Tagore", "Jashimuddin", "Lalon Shah"],
-    correctIndex: 1,
+    question: "বাংলাদেশের জাতীয় সংগীত কে লিখেছেন?",
+    options: ["কাজী নজরুল ইসলাম", "রবীন্দ্রনাথ ঠাকুর", "জসীমউদ্দীন", "লালন শাহ"],
+    correctIndex: 1
   },
   {
     id: 15,
-    question: "What is the speed of light in a vacuum?",
-    options: ["~150,000 km/s", "~300,000 km/s", "~450,000 km/s", "~600,000 km/s"],
-    correctIndex: 1,
+    question: "শূন্যস্থানে আলোর গতিবেগ কত?",
+    options: ["~১,৫০,০০০ কিমি/সেকেন্ড", "~৩,০০,০০০ কিমি/সেকেন্ড", "~৪,৫০,০০০ কিমি/সেকেন্ড", "~৬,০০,০০০ কিমি/সেকেন্ড"],
+    correctIndex: 1
+  },
+  {
+    id: 16,
+    question: "বাংলাদেশের জাতীয় কবি কে?",
+    options: ["রবীন্দ্রনাথ ঠাকুর", "কাজী নজরুল ইসলাম", "জীবনানন্দ দাশ", "জসীমউদ্দীন"],
+    correctIndex: 1
+  },
+  {
+    id: 17,
+    question: "কোন রঙের আলোতে সালোকসংশ্লেষণ সবচেয়ে ভালো হয়?",
+    options: ["সবুজ", "নীল", "লাল", "হলুদ"],
+    correctIndex: 2
+  },
+  {
+    id: 18,
+    question: "বিশ্বের সবচেয়ে উঁচু পর্বতশৃঙ্গ কোনটি?",
+    options: ["কে-টু", "কাঞ্চনজঙ্ঘা", "মাউন্ট এভারেস্ট", "লাহোটসে"],
+    correctIndex: 2
+  },
+  {
+    id: 19,
+    question: "রক্তের গ্রুপ কয়টি প্রধান শ্রেণীতে বিভক্ত?",
+    options: ["২টি", "৪টি", "৬টি", "৮টি"],
+    correctIndex: 1
+  },
+  {
+    id: 20,
+    question: "পদ্মা সেতুর দৈর্ঘ্য কত কিলোমিটার?",
+    options: ["৫.১৫ কিমি", "৬.১৫ কিমি", "৭.১৫ কিমি", "৮.১৫ কিমি"],
+    correctIndex: 1
+  },
+  {
+    id: 21,
+    question: "কোনটি স্তন্যপায়ী প্রাণী নয়?",
+    options: ["তিমি", "ডলফিন", "হাঙ্গর", "বাদুড়"],
+    correctIndex: 2
+  },
+  {
+    id: 22,
+    question: "মানুষের রক্তের লোহিত কণিকার আয়ুষ্কাল কত দিন?",
+    options: ["৬০ দিন", "৯০ দিন", "১২০ দিন", "১৫০ দিন"],
+    correctIndex: 2
+  },
+  {
+    id: 23,
+    question: "বিশ্বের সবচেয়ে দীর্ঘতম সমুদ্র সৈকত কোনটি?",
+    options: ["কক্সবাজার", "কুয়াকাটা", "পাতায়া", "বালি"],
+    correctIndex: 0
+  },
+  {
+    id: 24,
+    question: "কোন ভিটামিনের অভাবে রাতকানা রোগ হয়?",
+    options: ["ভিটামিন এ", "ভিটামিন বি", "ভিটামিন সি", "ভিটামিন ডি"],
+    correctIndex: 0
+  },
+  {
+    id: 25,
+    question: "পৃথিবীর একমাত্র প্রাকৃতিক উপগ্রহ কোনটি?",
+    options: ["সূর্য", "চাঁদ", "মঙ্গল", "টাইটান"],
+    correctIndex: 1
+  },
+  {
+    id: 26,
+    question: "জাপানের মুদ্রার নাম কী?",
+    options: ["ইউয়ান", "ইয়েন", "ডলার", "টাকা"],
+    correctIndex: 1
+  },
+  {
+    id: 27,
+    question: "বাংলাদেশের সবচেয়ে উচুঁ পর্বতশৃঙ্গ কোনটি?",
+    options: ["কেওক্রাডং", "তাজিংডং", "সাকা হাফং", "চন্দ্রনাথ পাহাড়"],
+    correctIndex: 1
+  },
+  {
+    id: 28,
+    question: "নোবেল পুরস্কার কয়টি ক্ষেত্রে দেওয়া হয়?",
+    options: ["৪টি", "৫টি", "৬টি", "৭টি"],
+    correctIndex: 2
+  },
+  {
+    id: 29,
+    question: "সূর্যের সবচেয়ে নিকটতম গ্রহ কোনটি?",
+    options: ["শুক্র", "বুধ", "পৃথিবী", "মঙ্গল"],
+    correctIndex: 1
+  },
+  {
+    id: 30,
+    question: "সুন্দরবন কয়টি জেলা জুড়ে বিস্তৃত?",
+    options: ["৩টি", "৪টি", "৫টি", "৬টি"],
+    correctIndex: 2
+  },
+  {
+    id: 31,
+    question: "ঢাকা বিশ্ববিদ্যালয় কত সালে প্রতিষ্ঠিত হয়?",
+    options: ["১৯১১", "১৯২১", "১৯৩১", "১৯৪১"],
+    correctIndex: 1
   }
 ];
