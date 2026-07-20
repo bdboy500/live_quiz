@@ -755,7 +755,7 @@ export default function Home() {
         )}
 
         {/* Scrollable Main Content Frame */}
-        <div className="flex-1 overflow-y-auto pb-10 bg-slate-50/60">
+        <div className={`flex-1 overflow-y-auto ${currentScreen !== "quiz" ? "pb-24 md:pb-10" : "pb-10"} bg-slate-50/60`}>
           
           {/* ========================================================= */}
           {/* 1. SCREEN: HOME                                           */}
@@ -2603,6 +2603,107 @@ export default function Home() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Android/iOS App-Style Bottom Navigation Bar */}
+        {currentScreen !== "quiz" && (
+          <nav 
+            className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex justify-around items-center pt-2.5 md:hidden shadow-[0_-8px_30px_rgba(0,0,0,0.08)] z-50 transition-all duration-300"
+            style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)" }}
+            id="mobile-bottom-nav"
+          >
+            {/* Home Tab */}
+            <button
+              onClick={() => {
+                setCurrentScreen("home");
+                if (soundEnabled) quizAudio.playClick();
+              }}
+              className="flex flex-col items-center justify-center flex-1 py-1 active:scale-95 transition-transform"
+              id="bottom-nav-home"
+            >
+              <HomeIcon 
+                className={`w-5 h-5 transition-colors ${
+                  currentScreen === "home" ? "text-[#FF6A00]" : "text-slate-400"
+                }`} 
+              />
+              <span 
+                className={`text-[9px] mt-1 font-bold transition-colors ${
+                  currentScreen === "home" ? "text-[#FF6A00]" : "text-slate-500"
+                }`}
+              >
+                Home
+              </span>
+            </button>
+
+            {/* Results Tab */}
+            <button
+              onClick={() => {
+                setCurrentScreen("tests");
+                if (soundEnabled) quizAudio.playClick();
+              }}
+              className="flex flex-col items-center justify-center flex-1 py-1 active:scale-95 transition-transform"
+              id="bottom-nav-results"
+            >
+              <ClipboardList 
+                className={`w-5 h-5 transition-colors ${
+                  currentScreen === "tests" ? "text-[#FF6A00]" : "text-slate-400"
+                }`} 
+              />
+              <span 
+                className={`text-[9px] mt-1 font-bold transition-colors ${
+                  currentScreen === "tests" ? "text-[#FF6A00]" : "text-slate-500"
+                }`}
+              >
+                Result
+              </span>
+            </button>
+
+            {/* Profile Tab */}
+            <button
+              onClick={() => {
+                setCurrentScreen("profile");
+                if (soundEnabled) quizAudio.playClick();
+              }}
+              className="flex flex-col items-center justify-center flex-1 py-1 active:scale-95 transition-transform"
+              id="bottom-nav-profile"
+            >
+              <CircleUser 
+                className={`w-5 h-5 transition-colors ${
+                  currentScreen === "profile" ? "text-[#FF6A00]" : "text-slate-400"
+                }`} 
+              />
+              <span 
+                className={`text-[9px] mt-1 font-bold transition-colors ${
+                  currentScreen === "profile" ? "text-[#FF6A00]" : "text-slate-500"
+                }`}
+              >
+                Profile
+              </span>
+            </button>
+
+            {/* Others/Menu Tab */}
+            <button
+              onClick={() => {
+                setDrawerOpen(!drawerOpen);
+                if (soundEnabled) quizAudio.playClick();
+              }}
+              className="flex flex-col items-center justify-center flex-1 py-1 active:scale-95 transition-transform"
+              id="bottom-nav-others"
+            >
+              <Menu 
+                className={`w-5 h-5 transition-colors ${
+                  drawerOpen ? "text-[#FF6A00]" : "text-slate-400"
+                }`} 
+              />
+              <span 
+                className={`text-[9px] mt-1 font-bold transition-colors ${
+                  drawerOpen ? "text-[#FF6A00]" : "text-slate-500"
+                }`}
+              >
+                Others
+              </span>
+            </button>
+          </nav>
         )}
 
       </div>
