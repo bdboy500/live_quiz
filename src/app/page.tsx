@@ -62,101 +62,199 @@ interface TakenTest {
 }
 
 // Extra mock question databases for other test subjects
-const BANGLA_QUESTIONS: Question[] = [
+const BANGLA_1ST_QUESTIONS: Question[] = [
   {
-    id: 201,
-    question: "কোনটি রবীন্দ্রনাথ ঠাকুরের রচিত নাটক?",
-    options: ["কবর", "রক্তকরবী", "নয়াপল্টন", "শেষের কবিতা"],
+    id: 1001,
+    question: "'কবর' কবিতাটি কার রচনা?",
+    options: ["কাজী নজরুল ইসলাম", "রবীন্দ্রনাথ ঠাকুর", "জসীমউদ্দীন", "জীবনানন্দ দাশ"],
+    correctIndex: 2
+  },
+  {
+    id: 1002,
+    question: "'গীতাঞ্জলি' কাব্যের জন্য রবীন্দ্রনাথ ঠাকুর কত সালে নোবেল পুরস্কার পান?",
+    options: ["১৯১০", "১৯১৩", "১৯২১", "১৯৩০"],
     correctIndex: 1
   },
   {
-    id: 203,
-    question: "বাংলা ব্যাকরণের প্রধান অংশ কয়টি?",
+    id: 1003,
+    question: "'লালসালু' উপন্যাসের লেখক কে?",
+    options: ["শওকত ওসমান", "সৈয়দ ওয়ালীউল্লাহ", "মানিক বন্দ্যোপাধ্যায়", "তারাশঙ্কর বন্দ্যোপাধ্যায়"],
+    correctIndex: 1
+  }
+];
+
+const BANGLA_2ND_QUESTIONS: Question[] = [
+  {
+    id: 1004,
+    question: "বাংলা ব্যাকরণের প্রধান আলোচ্য বিষয় কয়টি?",
     options: ["২টি", "৩টি", "৪টি", "৫টি"],
     correctIndex: 2
   },
   {
-    id: 205,
-    question: "'অগ্নিবীণা' কাব্যগ্রন্থের রচয়িতা কে?",
-    options: ["রবীন্দ্রনাথ ঠাকুর", "কাজী নজরুল ইসলাম", "জসীমউদ্দীন", "জীবনানন্দ দাশ"],
-    correctIndex: 1
-  }
-];
-
-const ENGLISH_QUESTIONS: Question[] = [
-  {
-    id: 202,
-    question: "Who is the author of 'Hamlet'?",
-    options: ["William Shakespeare", "Charles Dickens", "George Orwell", "Jane Austen"],
+    id: 1005,
+    question: "'সন্ধি' ব্যাকরণের কোন অংশে আলোচিত হয়?",
+    options: ["ধ্বনি তত্ত্বে", "শব্দ তত্ত্বে", "বাক্য তত্ত্বে", "অর্থ তত্ত্বে"],
     correctIndex: 0
   },
   {
-    id: 204,
-    question: "What is the synonym of 'Abolish'?",
-    options: ["Build", "Cancel/Eliminate", "Create", "Support"],
-    correctIndex: 1
+    id: 1006,
+    question: "'নীল আকাশ' কোন সমাস?",
+    options: ["দ্বন্দ্ব সমাস", "তৎপুরুষ সমাস", "বহুব্রীহি সমাস", "কর্মধারয় সমাস"],
+    correctIndex: 3
+  }
+];
+
+const ENGLISH_1ST_QUESTIONS: Question[] = [
+  {
+    id: 1007,
+    question: "Who wrote 'Paradise Lost'?",
+    options: ["John Milton", "William Shakespeare", "William Wordsworth", "John Keats"],
+    correctIndex: 0
   },
   {
-    id: 206,
-    question: "Which of the following is a noun?",
-    options: ["Beautiful", "Quickly", "Happiness", "Under"],
+    id: 1008,
+    question: "'To be or not to be, that is the question' is from which play?",
+    options: ["Macbeth", "Othello", "Hamlet", "King Lear"],
+    correctIndex: 2
+  },
+  {
+    id: 1009,
+    question: "Who is known as the 'Poet of Nature' in English literature?",
+    options: ["Lord Byron", "P. B. Shelley", "William Wordsworth", "John Keats"],
     correctIndex: 2
   }
 ];
 
-const MATH_QUESTIONS: Question[] = [
+const ENGLISH_2ND_QUESTIONS: Question[] = [
   {
-    id: 101,
-    question: "একটি আয়তক্ষেত্রের দৈর্ঘ্য ৪ মিটার এবং প্রস্থ ৩ মিটার হলে এর কর্ণের দৈর্ঘ্য কত?",
-    options: ["৫ মিটার", "৬ মিটার", "৭ মিটার", "৮ মিটার"],
-    correctIndex: 0
+    id: 1010,
+    question: "What is the plural form of 'Louse'?",
+    options: ["Louses", "Lice", "Lices", "Louse"],
+    correctIndex: 1
   },
   {
-    id: 102,
-    question: "নিচের কোনটি মৌলিক সংখ্যা?",
-    options: ["৯", "১৫", "২১", "২৯"],
+    id: 1011,
+    question: "Choose the correct spelling:",
+    options: ["Leiutenant", "Lieutenant", "Liautenant", "Lieutanant"],
+    correctIndex: 1
+  },
+  {
+    id: 1012,
+    question: "What is the antonym of 'Gentle'?",
+    options: ["Kind", "Rude/Harsh", "Soft", "Polite"],
+    correctIndex: 1
+  }
+];
+
+const PHYSICS_QUESTIONS: Question[] = [
+  {
+    id: 1013,
+    question: "শব্দের গতি কোন মাধ্যমে সবচেয়ে বেশি?",
+    options: ["বায়বীয় মাধ্যম", "তরল মাধ্যম", "কঠিন মাধ্যম", "শূন্য মাধ্যম"],
+    correctIndex: 2
+  },
+  {
+    id: 1014,
+    question: "ক্ষমতার একক কী?",
+    options: ["জুল", "ওয়াট", "প্যাসকেল", "নিউটন"],
+    correctIndex: 1
+  },
+  {
+    id: 1015,
+    question: "মহাকর্ষীয় ধ্রুবক (G) এর মান কত?",
+    options: ["6.673 x 10^-11 N m^2/kg^2", "9.8 m/s^2", "3 x 10^8 m/s", "1.6 x 10^-19 C"],
+    correctIndex: 0
+  }
+];
+
+const CHEMISTRY_QUESTIONS: Question[] = [
+  {
+    id: 1016,
+    question: "সাধারণ লবণের রাসায়নিক সংকেত কোনটি?",
+    options: ["HCl", "NaOH", "NaCl", "CaCO3"],
+    correctIndex: 2
+  },
+  {
+    id: 1017,
+    question: "পর্যায় সারণির প্রথম মৌল কোনটি?",
+    options: ["হিলিয়াম", "হাইড্রোজেন", "লিথিয়াম", "অক্সিজেন"],
+    correctIndex: 1
+  },
+  {
+    id: 1018,
+    question: "উড়োজাহাজের টায়ারে কোন নিষ্ক্রিয় গ্যাস ব্যবহার করা হয়?",
+    options: ["আর্গন", "নিয়ন", "হিলিয়াম", "ক্রিপ্টন"],
+    correctIndex: 2
+  }
+];
+
+const BIOLOGY_QUESTIONS: Question[] = [
+  {
+    id: 1019,
+    question: "রক্তের গ্রুপ কে আবিষ্কার করেন?",
+    options: ["আলেকজান্ডার ফ্লেমিং", "কার্ল ল্যান্ডস্টেইনার", "রবার্ট হুক", "লুই পাস্তুর"],
+    correctIndex: 1
+  },
+  {
+    id: 1020,
+    question: "কোষের পাওয়ার হাউস (Power House) বলা হয় কাকে?",
+    options: ["নিউক্লিয়াস", "ক্রোমোজোম", "সাইটোপ্লাজম", "মাইটোকন্ড্রিয়া"],
     correctIndex: 3
   },
   {
-    id: 105,
-    question: "১ থেকে ১০ পর্যন্ত মৌলিক সংখ্যা কয়টি?",
-    options: ["৩টি", "৪টি", "৫টি", "৬টি"],
+    id: 1021,
+    question: "লোহিত রক্তকণিকার গড় আয়ু কত দিন?",
+    options: ["৬০ দিন", "৯০ দিন", "১২০ দিন", "১৫০ দিন"],
+    correctIndex: 2
+  }
+];
+
+const ARITHMETIC_QUESTIONS: Question[] = [
+  {
+    id: 1022,
+    question: "১ থেকে ১০০ পর্যন্ত মৌলিক সংখ্যা কয়টি?",
+    options: ["১৫টি", "২০টি", "২৫টি", "৩০টি"],
+    correctIndex: 2
+  },
+  {
+    id: 1023,
+    question: "৩, ৯ ও ৪ এর চতুর্থ সমানুপাতী কত?",
+    options: ["৮", "১০", "১২", "১৬"],
+    correctIndex: 2
+  },
+  {
+    id: 1024,
+    question: "পিতা ও পুত্রের বয়সের সমষ্টি ৬০ বছর। পিতার বয়স পুত্রের বয়সের ৪ গুণ হলে, পুত্রের বয়স কত?",
+    options: ["১০ বছর", "১২ বছর", "১৫ বছর", "২০ বছর"],
     correctIndex: 1
   }
 ];
 
-const SCIENCE_QUESTIONS: Question[] = [
+const ALGEBRA_QUESTIONS: Question[] = [
   {
-    id: 103,
-    question: "পানির স্ফুটনাঙ্ক কত ডিগ্রি সেলসিয়াস?",
-    options: ["৫০°C", "৮০°C", "১০০°C", "১২০°C"],
-    correctIndex: 2
-  },
-  {
-    id: 104,
-    question: "উদ্ভিদ সূর্যলোক থেকে শক্তি গ্রহণ করে কোন প্রক্রিয়ায়?",
-    options: ["শ্বসন", "সালোকসংশ্লেষণ", "অভিশ্রবণ", "প্রস্বেদন"],
+    id: 1025,
+    question: "(a + b)^2 এর সঠিক সূত্র কোনটি?",
+    options: ["a^2 - 2ab + b^2", "a^2 + 2ab + b^2", "a^2 + b^2", "a^2 - b^2"],
     correctIndex: 1
   },
   {
-    id: 301,
-    question: "মানবদেহের স্বাভাবিক তাপমাত্রা কত ডিগ্রি ফারেনহাইট?",
-    options: ["৯৬.৪°F", "৯৭.৮°F", "৯৮.৪°F", "৯৮.৬°F"],
-    correctIndex: 3
+    id: 1026,
+    question: "x^2 - 5x + 6 = 0 সমীকরণের মূলদ্বয় কত?",
+    options: ["1, 6", "2, 3", "-2, -3", "0, 5"],
+    correctIndex: 1
   },
   {
-    id: 302,
-    question: "কোন ভিটামিনের অভাবে স্কার্ভি রোগ হয়?",
-    options: ["ভিটামিন এ", "ভিটামিন বি", "ভিটামিন সি", "ভিটামিন ডি"],
+    id: 1027,
+    question: "log2 (8) এর মান কত?",
+    options: ["১", "২", "৩", "৪"],
     correctIndex: 2
-  },
-  {
-    id: 303,
-    question: "বায়ুমণ্ডলে অক্সিজেনের শতকরা পরিমাণ কত?",
-    options: ["২০.৯৫%", "৭৮.০৯%", "০.০৩%", "১.২%"],
-    correctIndex: 0
   }
 ];
+
+const BANGLA_QUESTIONS: Question[] = [...BANGLA_1ST_QUESTIONS, ...BANGLA_2ND_QUESTIONS];
+const ENGLISH_QUESTIONS: Question[] = [...ENGLISH_1ST_QUESTIONS, ...ENGLISH_2ND_QUESTIONS];
+const SCIENCE_QUESTIONS: Question[] = [...PHYSICS_QUESTIONS, ...CHEMISTRY_QUESTIONS, ...BIOLOGY_QUESTIONS];
+const MATH_QUESTIONS: Question[] = [...ARITHMETIC_QUESTIONS, ...ALGEBRA_QUESTIONS];
 
 const ALL_COURSES_DATA = [
   { id: "bcs", title: "BCS Preparation Masterclass", desc: "পূর্ণাঙ্গ বিসিএস সিলেবাসের ওপর ভিত্তি করে অধ্যায়ভিত্তিক লাইভ এমসিকিউ ও বিশ্লেষণমূলক লেকচার শীট।", category: "BCS", icon: BookOpen, bg: "bg-[#FFF1E6]", iconColor: "text-orange-600" },
@@ -166,15 +264,21 @@ const ALL_COURSES_DATA = [
   { id: "psc", title: "PSC Non-Cadre Mock Series", desc: "বাংলাদেশ সরকারী কর্ম কমিশন (PSC) আয়োজিত বিভিন্ন গ্রেডের ও নন-ক্যাডার পদের জন্য সুপার মক টেস্ট।", category: "Other", icon: FileText, bg: "bg-[#FCE7F3]", iconColor: "text-rose-600" },
   { id: "all_job", title: "All Job Exams Universal Pack", desc: "সকল সরকারী ও স্বায়ত্তশাসিত প্রতিষ্ঠানের ৩য় ও ৪র্থ শ্রেণীর চাকরি পরীক্ষার সাধারণ জ্ঞান ও আইকিউ প্যাকেজ।", category: "All", icon: Briefcase, bg: "bg-[#E0F2FE]", iconColor: "text-sky-600" },
   { id: "bangla_english", title: "Bangla & English Literature Mastery", desc: "বাংলা ব্যাকরণ ও সাহিত্য, ইংরেজি গ্রামার এবং লিটারেচার পাসের জন্য প্রফেশনাল শর্ট টেকনিক কোর্স।", category: "Bangla", icon: BookOpen, bg: "bg-[#F1F5F9]", iconColor: "text-slate-700" },
-  { id: "math_science", title: "Quantitative Aptitude & General Science", desc: "জ্যামিতি, বীজগণিত, পাটিগণিত এবং দৈনন্দিন বিজ্ঞান বিষয়ের সবচেয়ে সহজ সমাধান কৌশল ও পরীক্ষা।", category: "Math", icon: Calculator, bg: "bg-[#E0F2FE]", iconColor: "text-blue-600" }
+  { id: "math_science", title: "Quantitative Aptitude & General Science", desc: "জ্যামিতি, বীজগণিত, পাটিগণিত এবং দৈনন্দিন বিজ্ঞান বিষয়ের সবচেয়ে সহজ সমাধান কৌশল ও পরীক্ষা।", category: "Math", icon: Calculator, bg: "bg-[#E0F2FE]", iconColor: "text-blue-600" },
+  { id: "office", title: "Office Assistant Preparation", desc: "সরকারি দপ্তর ও পরিদপ্তরে অফিস সহকারী ও কম্পিউটার অপারেটর পদের জন্য বিশেষ সিলেবাস কুইজ।", category: "Other", icon: FileText, bg: "bg-[#EBF7EE]", iconColor: "text-green-600" },
+  { id: "private", title: "Private Job & Corporate Prep", desc: "প্রথম সারির বেসরকারি ব্যাংক, এনজিও ও মাল্টিন্যাショナル কোম্পানির নিয়োগ পরীক্ষার প্রিপারেশন মডিউল।", category: "Other", icon: Briefcase, bg: "bg-[#FFF1E6]", iconColor: "text-orange-600" },
+  { id: "defense", title: "Defense & Police SI Prep", desc: "পুলিশ সাব-ইন্সপেক্টর, সার্জেন্ট ও সশস্ত্র বাহিনীর নিয়োগ পরীক্ষার সাধারণ জ্ঞান এবং ভাইভা প্রস্তুতি।", category: "Other", icon: Award, bg: "bg-[#E6F0FA]", iconColor: "text-blue-600" },
+  { id: "railway", title: "Railway Recruitment Special", desc: "বাংলাদেশ রেলওয়ের বিভিন্ন ক্যাটাগরির পদের জন্য বিগত ১০ বছরের প্রশ্ন ও সাজেস্টেড স্পিড টেস্ট।", category: "Other", icon: Globe, bg: "bg-[#F3E8FF]", iconColor: "text-purple-600" },
+  { id: "ministry", title: "Ministry Non-Cadre Series", desc: "বিভিন্ন মন্ত্রণালয়ের নন-ক্যাডার ও গ্রেডভিত্তিক পরীক্ষা পাসের সুপার মডেল টেস্ট ও সমাধান।", category: "Other", icon: GraduationCap, bg: "bg-[#FCE7F3]", iconColor: "text-rose-600" }
 ];
 
 export default function Home() {
   // Navigation State
-  const [currentScreen, setCurrentScreen] = useState<"home" | "quiz" | "courses" | "routine" | "tests" | "profile" | "course-detail">("home");
+  const [currentScreen, setCurrentScreen] = useState<"home" | "quiz" | "courses" | "routine" | "tests" | "profile" | "course-detail" | "prep-sub">("home");
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [selectedCourseDetail, setSelectedCourseDetail] = useState<any | null>(null);
-  const [previousScreen, setPreviousScreen] = useState<"home" | "quiz" | "courses" | "routine" | "tests" | "profile" | "course-detail">("home");
+  const [previousScreen, setPreviousScreen] = useState<"home" | "quiz" | "courses" | "routine" | "tests" | "profile" | "course-detail" | "prep-sub">("home");
+  const [selectedPrepSubject, setSelectedPrepSubject] = useState<"Bangla" | "English" | "Science" | "Math" | "">("");
   
   // Drawer & Overlay States
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
@@ -570,7 +674,7 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => {
-                  if (currentScreen === "course-detail") {
+                  if (currentScreen === "course-detail" || currentScreen === "prep-sub") {
                     setCurrentScreen(previousScreen);
                   } else {
                     setDrawerOpen(!drawerOpen);
@@ -580,7 +684,7 @@ export default function Home() {
                 className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 active:scale-95 transition-all z-50 relative"
                 id="menu-toggle-button"
               >
-                {currentScreen === "course-detail" ? (
+                {currentScreen === "course-detail" || currentScreen === "prep-sub" ? (
                   <ArrowLeft className="w-6 h-6 stroke-[2.2px]" />
                 ) : drawerOpen ? (
                   <X className="w-6 h-6 stroke-[2.2px] text-orange-600 animate-spin-once" />
@@ -607,6 +711,10 @@ export default function Home() {
                       <>
                         {selectedCourseDetail.title.split(" ")[0]} <span className="text-[#FF6A00]">{selectedCourseDetail.title.split(" ").slice(1).join(" ")}</span>
                       </>
+                    ) : currentScreen === "prep-sub" ? (
+                      <>
+                        {selectedPrepSubject} <span className="text-[#FF6A00]">Hub</span>
+                      </>
                     ) : (
                       <>
                         Job <span className="text-[#FF6A00]">Master</span>
@@ -614,7 +722,7 @@ export default function Home() {
                     )}
                   </span>
                   <span className="text-[8px] font-bold tracking-[0.08em] text-[#94A3B8] uppercase mt-0.5">
-                    {currentScreen === "course-detail" && selectedCourseDetail ? `${selectedCourseDetail.category} Course Details` : "Exam MCQ Hub"}
+                    {currentScreen === "course-detail" && selectedCourseDetail ? `${selectedCourseDetail.category} Course Details` : currentScreen === "prep-sub" ? `Select ${selectedPrepSubject} Subject` : "Exam MCQ Hub"}
                   </span>
                 </div>
               </button>
@@ -647,7 +755,7 @@ export default function Home() {
         )}
 
         {/* Scrollable Main Content Frame */}
-        <div className="flex-1 overflow-y-auto pb-20 bg-slate-50/60">
+        <div className="flex-1 overflow-y-auto pb-10 bg-slate-50/60">
           
           {/* ========================================================= */}
           {/* 1. SCREEN: HOME                                           */}
@@ -851,7 +959,9 @@ export default function Home() {
                   {/* Preparation Hub Item 1: Bangla */}
                   <div 
                     onClick={() => {
-                      startQuizFlow("Bangla Quiz", "Language & Literature", BANGLA_QUESTIONS);
+                      setSelectedPrepSubject("Bangla");
+                      setPreviousScreen("home");
+                      setCurrentScreen("prep-sub");
                       if (soundEnabled) quizAudio.playClick();
                     }}
                     className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
@@ -865,7 +975,9 @@ export default function Home() {
                   {/* Preparation Hub Item 2: English */}
                   <div 
                     onClick={() => {
-                      startQuizFlow("English Quiz", "Grammar & Vocabulary", ENGLISH_QUESTIONS);
+                      setSelectedPrepSubject("English");
+                      setPreviousScreen("home");
+                      setCurrentScreen("prep-sub");
                       if (soundEnabled) quizAudio.playClick();
                     }}
                     className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
@@ -879,7 +991,9 @@ export default function Home() {
                   {/* Preparation Hub Item 3: Math */}
                   <div 
                     onClick={() => {
-                      startQuizFlow("Mathematics Quiz", "Quantitative Aptitude", MATH_QUESTIONS);
+                      setSelectedPrepSubject("Math");
+                      setPreviousScreen("home");
+                      setCurrentScreen("prep-sub");
                       if (soundEnabled) quizAudio.playClick();
                     }}
                     className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
@@ -893,7 +1007,9 @@ export default function Home() {
                   {/* Preparation Hub Item 4: Science */}
                   <div 
                     onClick={() => {
-                      startQuizFlow("Science Quiz", "Anatomy & Environment", SCIENCE_QUESTIONS);
+                      setSelectedPrepSubject("Science");
+                      setPreviousScreen("home");
+                      setCurrentScreen("prep-sub");
                       if (soundEnabled) quizAudio.playClick();
                     }}
                     className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-row items-center gap-2.5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95"
@@ -1237,54 +1353,214 @@ export default function Home() {
                   কোনো কোর্স পাওয়া যায়নি। অন্য কিছু লিখে খুঁজুন!
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
                   {filteredCoursesList.map((course) => {
                     const CourseIcon = course.icon;
                     return (
                       <div 
                         key={course.id}
-                        className="bg-white border border-slate-100 rounded-[2rem] p-5 shadow-sm space-y-4"
+                        onClick={() => {
+                          setSelectedCourseDetail(course);
+                          setPreviousScreen("courses");
+                          setCurrentScreen("course-detail");
+                          if (soundEnabled) quizAudio.playClick();
+                        }}
+                        className="bg-white border border-slate-100 hover:border-[#FF6A00]/40 rounded-2xl p-2.5 flex flex-col justify-between gap-2 shadow-sm hover:shadow-md hover:border-slate-200 transition-all cursor-pointer active:scale-95 text-left"
                       >
-                        <div className="flex items-start gap-3.5">
-                          <div className={`w-12 h-12 ${course.bg} ${course.iconColor} rounded-2xl flex items-center justify-center shrink-0`}>
-                            <CourseIcon className="w-6 h-6 stroke-[2.2px]" />
+                        <div className="flex items-center gap-2 justify-between">
+                          <div className={`w-8 h-8 ${course.bg} ${course.iconColor} rounded-xl flex items-center justify-center shrink-0`}>
+                            <CourseIcon className="w-4 h-4 stroke-[2.2px]" />
                           </div>
-                          <div className="space-y-0.5">
-                            <span className="text-[9px] font-extrabold bg-orange-100/60 text-[#FF6A00] px-2.5 py-0.5 rounded-full uppercase">
-                              {course.category}
-                            </span>
-                            <h4 className="text-xs sm:text-sm font-black text-slate-800 leading-snug">
-                              {course.title}
-                            </h4>
-                          </div>
+                          <span className="text-[8px] font-black bg-orange-100/60 text-[#FF6A00] px-1.5 py-0.5 rounded uppercase">
+                            {course.category}
+                          </span>
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <h4 className="text-[11px] font-extrabold text-slate-800 leading-tight line-clamp-2">
+                            {course.title}
+                          </h4>
+                          <p className="text-[9px] text-slate-400 font-semibold line-clamp-2">
+                            {course.desc}
+                          </p>
                         </div>
 
-                        <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
-                          {course.desc}
-                        </p>
-
-                        <div className="pt-2 border-t border-slate-50 flex items-center justify-between">
-                          <span className="text-[10px] font-extrabold text-orange-600 bg-orange-50 px-3 py-1 rounded-full">
-                            Enroll Free
+                        <div className="border-t border-slate-50 pt-1.5 flex items-center justify-between mt-1">
+                          <span className="text-[8px] font-black text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded-full">
+                            Free
                           </span>
-                          
-                          <button 
-                            onClick={() => {
-                              setSelectedCourseDetail(course);
-                              setPreviousScreen("courses");
-                              setCurrentScreen("course-detail");
-                              if (soundEnabled) quizAudio.playClick();
-                            }}
-                            className="bg-[#FF6A00] hover:bg-orange-600 text-white font-extrabold text-[10px] px-4.5 py-2.5 rounded-xl active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
-                          >
-                            Enter Course <ChevronRight className="w-3.5 h-3.5 stroke-[2.5px]" />
-                          </button>
+                          <span className="text-[8px] font-bold text-slate-500 flex items-center gap-0.5">
+                            Enter <ChevronRight className="w-2.5 h-2.5" />
+                          </span>
                         </div>
                       </div>
                     );
                   })}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* PREPARATION HUB SUB-SUBJECTS SCREEN                        */}
+          {/* ========================================================= */}
+          {currentScreen === "prep-sub" && (
+            <div className="p-5 space-y-5 animate-fade-in pb-10">
+              
+              {/* Back Button & Title */}
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => {
+                    setCurrentScreen("home");
+                    if (soundEnabled) quizAudio.playClick();
+                  }}
+                  className="p-2 bg-white hover:bg-slate-100 rounded-xl text-slate-700 shadow-sm transition-all active:scale-90"
+                >
+                  <ArrowLeft className="w-5 h-5 stroke-[2.5px]" />
+                </button>
+                <div className="space-y-0.5">
+                  <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#FF6A00] bg-orange-50 px-2.5 py-0.5 rounded-full">
+                    Preparation Hub
+                  </span>
+                  <h3 className="font-extrabold text-sm text-slate-900 tracking-tight leading-none mt-1">
+                    {selectedPrepSubject === "Bangla" && "বাংলা প্রস্তুতি প্যানেল"}
+                    {selectedPrepSubject === "English" && "English Preparation Panel"}
+                    {selectedPrepSubject === "Science" && "বিজ্ঞান প্রস্তুতি প্যানেল"}
+                    {selectedPrepSubject === "Math" && "গণিত প্রস্তুতি প্যানেল"}
+                  </h3>
+                </div>
+              </div>
+
+              {/* Subject Description Card */}
+              <div className="bg-white border border-slate-100 rounded-[2rem] p-5 shadow-sm space-y-2">
+                <h4 className="text-sm font-black text-slate-800">
+                  {selectedPrepSubject} MCQ Practice
+                </h4>
+                <p className="text-xs text-slate-500 leading-relaxed font-semibold">
+                  {selectedPrepSubject === "Bangla" && "বাংলা ভাষা ও সাহিত্যের প্রথম ও দ্বিতীয় পত্রের গুরুত্বপূর্ণ নৈর্ব্যক্তিক নিয়ে সাজানো অধ্যায়ভিত্তিক টেস্ট মডিউল।"}
+                  {selectedPrepSubject === "English" && "English Literature & Grammar multiple choice questions designed for high score prep in competitive exams."}
+                  {selectedPrepSubject === "Science" && "পদার্থ, রসায়ন ও জীববিজ্ঞানের বিগত বছরের গুরুত্বপূর্ণ প্রশ্নসমূহ আলাদাভাবে অনুশীলনের মডিউল।"}
+                  {selectedPrepSubject === "Math" && "পাটিগণিত ও বীজগণিতের গুরুত্বপূর্ণ গাণিতিক সমস্যা ও সূত্রাবলীর সঠিক উত্তরসহ এমসিকিউ সমাধান।"}
+                </p>
+              </div>
+
+              {/* Sub-subjects grid */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider pl-1">
+                  বিষয়সমূহ সিলেক্ট করুন (Select Subject)
+                </h4>
+
+                <div className="grid grid-cols-1 gap-3">
+                  {selectedPrepSubject === "Bangla" && [
+                    { name: "Bangla 1st Paper", sub: "বাংলা সাহিত্য ও গল্প-কবিতা", questions: BANGLA_1ST_QUESTIONS },
+                    { name: "Bangla 2nd Paper", sub: "বাংলা ব্যাকরণ ও ভাষাতত্ত্ব", questions: BANGLA_2ND_QUESTIONS }
+                  ].map((sub, idx) => (
+                    <div 
+                      key={idx}
+                      onClick={() => {
+                        startQuizFlow(sub.name, sub.sub, sub.questions);
+                        if (soundEnabled) quizAudio.playClick();
+                      }}
+                      className="bg-white border border-slate-100 hover:border-[#FF6A00]/40 rounded-[2rem] p-4.5 flex items-center justify-between shadow-sm cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-11 h-11 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center shrink-0">
+                          <BookOpen className="w-5 h-5 stroke-[2.2px]" />
+                        </div>
+                        <div className="text-left space-y-0.5">
+                          <h5 className="text-xs font-black text-slate-800 leading-snug">{sub.name}</h5>
+                          <p className="text-[10px] font-bold text-slate-400">{sub.sub}</p>
+                        </div>
+                      </div>
+                      <div className="bg-slate-50 p-2 rounded-xl text-slate-400">
+                        <Play className="w-3.5 h-3.5 fill-current text-orange-500" />
+                      </div>
+                    </div>
+                  ))}
+
+                  {selectedPrepSubject === "English" && [
+                    { name: "English 1st Paper", sub: "English Literature & Reading", questions: ENGLISH_1ST_QUESTIONS },
+                    { name: "English 2nd Paper", sub: "English Grammar & Vocabulary", questions: ENGLISH_2ND_QUESTIONS }
+                  ].map((sub, idx) => (
+                    <div 
+                      key={idx}
+                      onClick={() => {
+                        startQuizFlow(sub.name, sub.sub, sub.questions);
+                        if (soundEnabled) quizAudio.playClick();
+                      }}
+                      className="bg-white border border-slate-100 hover:border-[#FF6A00]/40 rounded-[2rem] p-4.5 flex items-center justify-between shadow-sm cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-11 h-11 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0">
+                          <Globe className="w-5 h-5 stroke-[2.2px]" />
+                        </div>
+                        <div className="text-left space-y-0.5">
+                          <h5 className="text-xs font-black text-slate-800 leading-snug">{sub.name}</h5>
+                          <p className="text-[10px] font-bold text-slate-400">{sub.sub}</p>
+                        </div>
+                      </div>
+                      <div className="bg-slate-50 p-2 rounded-xl text-slate-400">
+                        <Play className="w-3.5 h-3.5 fill-current text-purple-500" />
+                      </div>
+                    </div>
+                  ))}
+
+                  {selectedPrepSubject === "Science" && [
+                    { name: "Physics", sub: "পদার্থবিজ্ঞান ও গতিবিদ্যার সূত্রাবলী", questions: PHYSICS_QUESTIONS },
+                    { name: "Chemistry", sub: "রসায়ন তত্ত্ব ও পর্যায় সারণি", questions: CHEMISTRY_QUESTIONS },
+                    { name: "Biology", sub: "জীববিজ্ঞান ও মানবদেহের কার্যাবলী", questions: BIOLOGY_QUESTIONS }
+                  ].map((sub, idx) => (
+                    <div 
+                      key={idx}
+                      onClick={() => {
+                        startQuizFlow(sub.name, sub.sub, sub.questions);
+                        if (soundEnabled) quizAudio.playClick();
+                      }}
+                      className="bg-white border border-slate-100 hover:border-[#FF6A00]/40 rounded-[2rem] p-4.5 flex items-center justify-between shadow-sm cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-11 h-11 bg-green-50 text-green-600 rounded-xl flex items-center justify-center shrink-0">
+                          <Sparkles className="w-5 h-5 stroke-[2.2px]" />
+                        </div>
+                        <div className="text-left space-y-0.5">
+                          <h5 className="text-xs font-black text-slate-800 leading-snug">{sub.name}</h5>
+                          <p className="text-[10px] font-bold text-slate-400">{sub.sub}</p>
+                        </div>
+                      </div>
+                      <div className="bg-slate-50 p-2 rounded-xl text-slate-400">
+                        <Play className="w-3.5 h-3.5 fill-current text-green-500" />
+                      </div>
+                    </div>
+                  ))}
+
+                  {selectedPrepSubject === "Math" && [
+                    { name: "Arithmetic (পাটিগণিত)", sub: "মৌলিক সংখ্যা, শতকরা ও লাভ-ক্ষতি", questions: ARITHMETIC_QUESTIONS },
+                    { name: "Algebra (বীজগণিত)", sub: "মান নির্ণয়, সমীকরণ ও লগারিদম", questions: ALGEBRA_QUESTIONS }
+                  ].map((sub, idx) => (
+                    <div 
+                      key={idx}
+                      onClick={() => {
+                        startQuizFlow(sub.name, sub.sub, sub.questions);
+                        if (soundEnabled) quizAudio.playClick();
+                      }}
+                      className="bg-white border border-slate-100 hover:border-[#FF6A00]/40 rounded-[2rem] p-4.5 flex items-center justify-between shadow-sm cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-11 h-11 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                          <Calculator className="w-5 h-5 stroke-[2.2px]" />
+                        </div>
+                        <div className="text-left space-y-0.5">
+                          <h5 className="text-xs font-black text-slate-800 leading-snug">{sub.name}</h5>
+                          <p className="text-[10px] font-bold text-slate-400">{sub.sub}</p>
+                        </div>
+                      </div>
+                      <div className="bg-slate-50 p-2 rounded-xl text-slate-400">
+                        <Play className="w-3.5 h-3.5 fill-current text-blue-500" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
@@ -1802,81 +2078,6 @@ export default function Home() {
 
         </div>
 
-        {/* Persistent Bottom Tab Navigation Bar matching the image */}
-        {currentScreen !== "quiz" && (
-          <nav className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex justify-between items-center px-4 py-2 shadow-[0_-5px_20px_rgba(0,0,0,0.03)] z-40">
-            {/* Nav Item 1: HOME */}
-            <button 
-              onClick={() => {
-                setCurrentScreen("home");
-                if (soundEnabled) quizAudio.playClick();
-              }}
-              className="flex flex-col items-center justify-center py-1.5 flex-1 transition-all active:scale-95 cursor-pointer"
-            >
-              <HomeIcon className={`w-5 h-5 ${currentScreen === "home" ? "text-[#FF6A00]" : "text-[#94A3B8]"} stroke-[2.2px]`} />
-              <span className={`text-[9px] font-extrabold tracking-wide mt-1 uppercase ${currentScreen === "home" ? "text-[#FF6A00]" : "text-[#94A3B8]"}`}>
-                HOME
-              </span>
-            </button>
-
-            {/* Nav Item 2: COURSES */}
-            <button 
-              onClick={() => {
-                setCurrentScreen("courses");
-                if (soundEnabled) quizAudio.playClick();
-              }}
-              className="flex flex-col items-center justify-center py-1.5 flex-1 transition-all active:scale-95 cursor-pointer"
-            >
-              <BookOpen className={`w-5 h-5 ${currentScreen === "courses" ? "text-[#FF6A00]" : "text-[#94A3B8]"} stroke-[2.2px]`} />
-              <span className={`text-[9px] font-extrabold tracking-wide mt-1 uppercase ${currentScreen === "courses" ? "text-[#FF6A00]" : "text-[#94A3B8]"}`}>
-                COURSES
-              </span>
-            </button>
-
-            {/* Nav Item 3: ROUTINE */}
-            <button 
-              onClick={() => {
-                setCurrentScreen("routine");
-                if (soundEnabled) quizAudio.playClick();
-              }}
-              className="flex flex-col items-center justify-center py-1.5 flex-1 transition-all active:scale-95 cursor-pointer"
-            >
-              <Calendar className={`w-5 h-5 ${currentScreen === "routine" ? "text-[#FF6A00]" : "text-[#94A3B8]"} stroke-[2.2px]`} />
-              <span className={`text-[9px] font-extrabold tracking-wide mt-1 uppercase ${currentScreen === "routine" ? "text-[#FF6A00]" : "text-[#94A3B8]"}`}>
-                ROUTINE
-              </span>
-            </button>
-
-            {/* Nav Item 4: TESTS */}
-            <button 
-              onClick={() => {
-                setCurrentScreen("tests");
-                if (soundEnabled) quizAudio.playClick();
-              }}
-              className="flex flex-col items-center justify-center py-1.5 flex-1 transition-all active:scale-95 cursor-pointer"
-            >
-              <ClipboardList className={`w-5 h-5 ${currentScreen === "tests" ? "text-[#FF6A00]" : "text-[#94A3B8]"} stroke-[2.2px]`} />
-              <span className={`text-[9px] font-extrabold tracking-wide mt-1 uppercase ${currentScreen === "tests" ? "text-[#FF6A00]" : "text-[#94A3B8]"}`}>
-                TESTS
-              </span>
-            </button>
-
-            {/* Nav Item 5: PROFILE */}
-            <button 
-              onClick={() => {
-                setCurrentScreen("profile");
-                if (soundEnabled) quizAudio.playClick();
-              }}
-              className="flex flex-col items-center justify-center py-1.5 flex-1 transition-all active:scale-95 cursor-pointer"
-            >
-              <CircleUser className={`w-5 h-5 ${currentScreen === "profile" ? "text-[#FF6A00]" : "text-[#94A3B8]"} stroke-[2.2px]`} />
-              <span className={`text-[9px] font-extrabold tracking-wide mt-1 uppercase ${currentScreen === "profile" ? "text-[#FF6A00]" : "text-[#94A3B8]"}`}>
-                PROFILE
-              </span>
-            </button>
-          </nav>
-        )}
-
         {/* Backdrop overlay for Drawer */}
         <div 
           onClick={() => {
@@ -1932,6 +2133,24 @@ export default function Home() {
 
           {/* Drawer Menu Items */}
           <div className="flex-1 overflow-y-auto py-3 px-3.5 space-y-1 bg-slate-50/50">
+            {/* 0. Home */}
+            <button
+              onClick={() => {
+                setCurrentScreen("home");
+                setDrawerOpen(false);
+                if (soundEnabled) quizAudio.playClick();
+              }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                currentScreen === "home" 
+                  ? "bg-orange-50 text-[#FF6A00] font-bold" 
+                  : "text-slate-600 hover:bg-slate-100 font-semibold"
+              } text-xs`}
+              id="drawer-item-home"
+            >
+              <HomeIcon className={`w-4 h-4 ${currentScreen === "home" ? "text-[#FF6A00]" : "text-slate-400"}`} />
+              <span>Home</span>
+            </button>
+
             {/* 1. Profile */}
             <button
               onClick={() => {
