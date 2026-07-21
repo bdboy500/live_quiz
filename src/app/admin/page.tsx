@@ -337,19 +337,33 @@ export default function AdminPage() {
       setDbLoading(true);
       const supabase = getSupabase();
 
-      // Support camelCase, snake_case, and original field schema parameters for maximum resilience
-      const payload: any = {
-        subjectName: editSubjectName,
-        subject_name: editSubjectName,
-        questionText: editQuestionText.trim(),
-        question_text: editQuestionText.trim(),
-        question: editQuestionText.trim(),
-        options: [...editOptions],
-        correctOptionIndex: editCorrectOptionIdx,
-        correct_option_index: editCorrectOptionIdx,
-        correctIndex: editCorrectOptionIdx,
-        explanation: editExplanation.trim() || null
+      // Dynamically map payload properties to prevent sending non-existent columns to Supabase
+      const payload: any = {};
+      
+      const setFieldIfInModel = (standardKey: string, fallbacks: string[], val: any) => {
+        let matchedKey = standardKey;
+        // Check editingQuestion keys to find which exact key name is defined in database schema
+        for (const key of [standardKey, ...fallbacks]) {
+          if (editingQuestion && key in editingQuestion) {
+            matchedKey = key;
+            break;
+          }
+        }
+        payload[matchedKey] = val;
       };
+
+      setFieldIfInModel("subjectName", ["subject_name"], editSubjectName);
+      setFieldIfInModel("questionText", ["question_text", "question", "text"], editQuestionText.trim());
+      setFieldIfInModel("options", ["choices", "answers", "option_list"], [...editOptions]);
+      setFieldIfInModel("correctOptionIndex", ["correct_option_index", "correctIndex", "correct_index"], editCorrectOptionIdx);
+      
+      // Explanation field
+      let explanationKey = "explanation";
+      if (editingQuestion) {
+        if ("explanation" in editingQuestion) explanationKey = "explanation";
+        else if ("explanation_text" in editingQuestion) explanationKey = "explanation_text";
+      }
+      payload[explanationKey] = editExplanation.trim() || null;
 
       const { error } = await supabase
         .from("questions")
