@@ -648,11 +648,7 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-slate-50/50 flex flex-col font-sans selection:bg-[#FF6A00] selection:text-white">
       
-      {/* Top Banner indicating Supabase-Ready Mode */}
-      <div className="bg-gradient-to-r from-orange-600 via-[#FF6A00] to-amber-500 text-white text-[10px] sm:text-xs font-black py-2.5 px-4 text-center tracking-wider flex items-center justify-center gap-2 shadow-sm shrink-0">
-        <Database className="w-4 h-4 animate-pulse" />
-        <span>SUPABASE DATABASE & REAL DOMAIN PRODUCTION READY MODE (MOCK SIMULATION CACHED IN LOCALSTORAGE)</span>
-      </div>
+
 
       {/* Toast Notification */}
       {notification && (
@@ -1404,6 +1400,142 @@ export default function AdminPage() {
           )}
 
         </main>
+
+        {/* 3. EDIT QUESTION MODAL */}
+        {editingQuestion && (
+          <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-2xl max-w-2xl w-full text-left space-y-4 relative animate-fade-in">
+              <button 
+                onClick={() => setEditingQuestion(null)}
+                className="absolute top-5 right-5 p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200/50 text-slate-500 hover:text-slate-700 rounded-xl transition-all cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+                <div className="w-7 h-7 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center shrink-0">
+                  <Pencil className="w-4 h-4 stroke-[2.5px]" />
+                </div>
+                <h3 className="font-extrabold text-sm sm:text-base text-slate-800 tracking-tight">
+                  প্রশ্ন এডিট ও আপডেট করুন (Edit MCQ Question)
+                </h3>
+              </div>
+
+              <form onSubmit={handleUpdateQuestion} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Question Text */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
+                      প্রশ্ন (Question Text)
+                    </label>
+                    <input 
+                      type="text"
+                      placeholder="যেমন: বাংলাদেশের দীর্ঘতম নদী কোনটি?"
+                      value={editQuestionText}
+                      onChange={(e) => setEditQuestionText(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] focus:ring-2 focus:ring-[#FF6A00]/20 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold focus:outline-none transition-all text-slate-800"
+                      required
+                    />
+                  </div>
+
+                  {/* Subject Selector */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
+                      বিষয় নির্বাচন (MCQ Subject Group)
+                    </label>
+                    <select
+                      value={editSubjectName}
+                      onChange={(e) => setEditSubjectName(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold focus:outline-none transition-all text-slate-800 cursor-pointer"
+                    >
+                      {SUBJECTS.map((sub) => (
+                        <option key={sub} value={sub}>{sub}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Options inputs */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
+                    সম্ভাব্য অপশনসমূহ (4 MCQ Options)
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {editOptions.map((opt, idx) => (
+                      <div key={idx} className="space-y-1">
+                        <span className="text-[9px] font-black text-slate-400 pl-1 font-sans">অপশন {idx + 1}</span>
+                        <input 
+                          type="text"
+                          placeholder={`অপশন ${idx + 1} এর মান`}
+                          value={opt}
+                          onChange={(e) => handleEditOptionChange(idx, e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] rounded-2xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none transition-all text-slate-800"
+                          required
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Correct Answer Index Selector */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
+                      সঠিক উত্তর নির্বাচন (Correct Option Index)
+                    </label>
+                    <select
+                      value={editCorrectOptionIdx}
+                      onChange={(e) => setEditCorrectOptionIdx(parseInt(e.target.value))}
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold focus:outline-none transition-all text-slate-800 cursor-pointer"
+                    >
+                      <option value={0}>অপশন ১ (Option 1)</option>
+                      <option value={1}>অপশন ২ (Option 2)</option>
+                      <option value={2}>অপশন ৩ (Option 3)</option>
+                      <option value={3}>অপশন ৪ (Option 4)</option>
+                    </select>
+                  </div>
+
+                  {/* Explanation */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
+                      বিশ্লেষণ বা ব্যাখ্যা (Explanation - Optional)
+                    </label>
+                    <input 
+                      type="text"
+                      placeholder="যেমন: মেঘনা নদী বাংলাদেশের দীর্ঘতম ও বৃহত্তম নদী।"
+                      value={editExplanation}
+                      onChange={(e) => setEditExplanation(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] focus:ring-2 focus:ring-[#FF6A00]/20 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold focus:outline-none transition-all text-slate-800"
+                    />
+                  </div>
+                </div>
+
+                {/* Action buttons */}
+                <div className="pt-4 border-t border-slate-50 flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setEditingQuestion(null)}
+                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm px-5 py-3 rounded-2xl active:scale-95 transition-all cursor-pointer animate-fade-in"
+                  >
+                    বাতিল করুন
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={dbLoading}
+                    className="bg-[#FF6A00] hover:bg-orange-600 disabled:bg-slate-400 text-white font-black text-xs sm:text-sm px-6 py-3 rounded-2xl active:scale-95 transition-all shadow-md shadow-orange-500/10 cursor-pointer flex items-center gap-1.5"
+                  >
+                    {dbLoading ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Check className="w-4 h-4 stroke-[2.5px]" />
+                    )}
+                    আপডেট করুন
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
