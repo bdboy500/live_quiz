@@ -192,8 +192,7 @@ export default function AdminPage() {
       
       const { data, error } = await supabase
         .from("questions")
-        .select("*")
-        .order("createdAt", { ascending: false });
+        .select("*");
 
       if (error) {
         // If table doesn't exist yet, we still allow proceeding but log warn
@@ -208,8 +207,18 @@ export default function AdminPage() {
           setQuestions(QUIZ_QUESTIONS);
         }
       } else if (data) {
-        setQuestions(data);
-        localStorage.setItem("job_master_admin_questions", JSON.stringify(data));
+        // Robust in-memory sorting so we don't depend on database column named createdAt
+        const sortedData = [...data].sort((a: any, b: any) => {
+          const aTime = a.createdAt || a.created_at || a.id || 0;
+          const bTime = b.createdAt || b.created_at || b.id || 0;
+          if (typeof aTime === "number" && typeof bTime === "number") {
+            return bTime - aTime;
+          }
+          return String(bTime).localeCompare(String(aTime));
+        });
+        
+        setQuestions(sortedData);
+        localStorage.setItem("job_master_admin_questions", JSON.stringify(sortedData));
       }
     } catch (err: any) {
       console.error("Error connecting to Supabase:", err);
