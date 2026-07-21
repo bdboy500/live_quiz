@@ -11,16 +11,13 @@ export function getSupabase(): SupabaseClient {
     return supabaseInstance;
   }
 
-  // Check environment variables first, then fallback to hardcoded credentials
-  let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cqwssqcpxrwkivrrmuou.supabase.co/rest/v1/";
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_LmhA6lMdI1LwZ4SnCaiPMg_0Fu5Saze";
+  // Get env vars or set clean fallbacks
+  let rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cqwssqcpxrwkivrrmuou.supabase.co";
+  const rawKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_LmhA6lMdI1LwZ4SnCaiPMg_0Fu5Saze";
 
-  // Robustly clean trailing /rest/v1/ or /rest/v1 to prevent SDK fetch URL formatting issues
-  if (supabaseUrl.endsWith("/rest/v1/")) {
-    supabaseUrl = supabaseUrl.slice(0, -9);
-  } else if (supabaseUrl.endsWith("/rest/v1")) {
-    supabaseUrl = supabaseUrl.slice(0, -8);
-  }
+  // Clean and sanitize the base URL safely using regex
+  const supabaseUrl = rawUrl.trim().replace(/\/rest\/v1\/?$/, "").replace(/\/$/, "");
+  const supabaseAnonKey = rawKey.trim();
 
   // Create client
   supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
