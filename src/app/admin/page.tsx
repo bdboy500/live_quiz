@@ -22,7 +22,11 @@ import {
   Database,
   Lock,
   Compass,
-  FileText
+  FileText,
+  Pencil,
+  Filter,
+  Sparkles,
+  RefreshCw
 } from "lucide-react";
 import Link from "next/link";
 import { QUIZ_QUESTIONS, Question } from "../../data";
@@ -55,50 +59,53 @@ export default function AdminPage() {
   // Notifications
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
+  // Predefined 14 Subjects required for Exam MCQ Hub
+  const SUBJECTS = [
+    "Bangla Literature",
+    "Bangla Grammer",
+    "English Literature",
+    "English Grammer",
+    "Bangladesh Affairs",
+    "International Affairs",
+    "Geography",
+    "General Science",
+    "Technology",
+    "Mathematics (Arithmetic)",
+    "Mathematics (Algebra )",
+    "Mathematics (Geometry)",
+    "Mental Ability",
+    "Good Governance"
+  ];
+
   // ==========================================
   // 1. QUESTIONS STATE & COMPONENT
   // ==========================================
-  
-  /* 
-    SUPABASE INTEGRATION COMMENTS:
-    To fetch questions from your Supabase database, write:
-    
-    useEffect(() => {
-      async function loadQuestions() {
-        const supabase = getSupabase();
-        const { data, error } = await supabase
-          .from("questions")
-          .select("*")
-          .order("id", { ascending: false });
-        if (error) console.error(error);
-        else setQuestions(data);
-      }
-      loadQuestions();
-    }, []);
-  */
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [dbLoading, setDbLoading] = useState<boolean>(false);
+  const [dbError, setDbError] = useState<string | null>(null);
+
+  // Search & Subject Filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSubjectFilter, setSelectedSubjectFilter] = useState("All");
+
+  // Add Question form states
+  const [newSubjectName, setNewSubjectName] = useState<string>("Bangla Literature");
   const [newQuestionText, setNewQuestionText] = useState("");
   const [newOptions, setNewOptions] = useState<string[]>(["", "", "", ""]);
   const [correctOptionIdx, setCorrectOptionIdx] = useState<number>(0);
+  const [newExplanation, setNewExplanation] = useState("");
+
+  // Edit Question modal state
+  const [editingQuestion, setEditingQuestion] = useState<any | null>(null);
+  const [editSubjectName, setEditSubjectName] = useState<string>("Bangla Literature");
+  const [editQuestionText, setEditQuestionText] = useState("");
+  const [editOptions, setEditOptions] = useState<string[]>(["", "", "", ""]);
+  const [editCorrectOptionIdx, setEditCorrectOptionIdx] = useState<number>(0);
+  const [editExplanation, setEditExplanation] = useState("");
 
   // ==========================================
   // 2. USERS STATE & COMPONENT
   // ==========================================
-  
-  /* 
-    SUPABASE INTEGRATION COMMENTS:
-    To fetch or update users in your Supabase database, write:
-    
-    // Fetch:
-    const supabase = getSupabase();
-    const { data: users, error } = await supabase.from("profiles").select("*");
-    
-    // Update status:
-    const { error } = await supabase
-      .from("profiles")
-      .update({ status: newStatus })
-      .eq("id", userId);
-  */
   const [users, setUsers] = useState<AdminUser[]>([
     { id: "u-101", email: "hassan.bcs@gmail.com", role: "Student", status: "Active" },
     { id: "u-102", email: "tasnim_sheikh@yahoo.com", role: "Student", status: "Active" },
@@ -110,23 +117,6 @@ export default function AdminPage() {
   // ==========================================
   // 3. OFFERS STATE & COMPONENT
   // ==========================================
-  
-  /* 
-    SUPABASE INTEGRATION COMMENTS:
-    To manage active promotions and offer banners in your Supabase database:
-    
-    // Fetch:
-    const { data: offers } = await supabase.from("offers_announcements").select("*");
-    
-    // Insert:
-    const { error } = await supabase.from("offers_announcements").insert([newOffer]);
-    
-    // Toggle active switch:
-    const { error } = await supabase
-      .from("offers_announcements")
-      .update({ active: !active })
-      .eq("id", offerId);
-  */
   const [offers, setOffers] = useState<AdminOffer[]>([
     { 
       id: "o-1", 
@@ -161,30 +151,18 @@ export default function AdminPage() {
       setIsAuthenticated(false);
     }
 
-    // Initialize mock questions with original data if not cached locally
-    const cachedQuestions = localStorage.getItem("job_master_admin_questions");
-    if (cachedQuestions) {
-      setQuestions(JSON.parse(cachedQuestions));
-    } else {
-      const initialQuestions = QUIZ_QUESTIONS.slice(0, 10);
-      setQuestions(initialQuestions);
-      localStorage.setItem("job_master_admin_questions", JSON.stringify(initialQuestions));
-    }
-
-    // Initialize other states from local storage if available
+    // Initialize static data from local storage if available
     const cachedUsers = localStorage.getItem("job_master_admin_users");
     if (cachedUsers) setUsers(JSON.parse(cachedUsers));
 
     const cachedOffers = localStorage.getItem("job_master_admin_offers");
     if (cachedOffers) setOffers(JSON.parse(cachedOffers));
+
+    // Fetch questions from Supabase
+    loadQuestionsFromDb();
   }, []);
 
-  // Sync state changes with local storage to simulate persistent updates
-  const saveQuestions = (updatedQuestions: Question[]) => {
-    setQuestions(updatedQuestions);
-    localStorage.setItem("job_master_admin_questions", JSON.stringify(updatedQuestions));
-  };
-
+  // Sync users and offers updates
   const saveUsers = (updatedUsers: AdminUser[]) => {
     setUsers(updatedUsers);
     localStorage.setItem("job_master_admin_users", JSON.stringify(updatedUsers));
@@ -201,6 +179,283 @@ export default function AdminPage() {
     setTimeout(() => {
       setNotification(null);
     }, 4000);
+  };
+
+  // -------------------------------------------------------------
+  // SUPABASE ASYNC CRUD HANDLERS
+  // -------------------------------------------------------------
+  const loadQuestionsFromDb = async () => {
+    try {
+      setDbLoading(true);
+      setDbError(null);
+      const supabase = getSupabase();
+      
+      const { data, error } = await supabase
+        .from("questions")
+        .select("*")
+        .order("createdAt", { ascending: false });
+
+      if (error) {
+        // If table doesn't exist yet, we still allow proceeding but log warn
+        console.warn("Could not load from 'questions' table. Fallback to mock state.", error);
+        setDbError("Supabase 'questions' table not found or query failed.");
+        
+        // Initialize with original mock questions
+        const cachedMock = localStorage.getItem("job_master_admin_questions");
+        if (cachedMock) {
+          setQuestions(JSON.parse(cachedMock));
+        } else {
+          setQuestions(QUIZ_QUESTIONS);
+        }
+      } else if (data) {
+        setQuestions(data);
+        localStorage.setItem("job_master_admin_questions", JSON.stringify(data));
+      }
+    } catch (err: any) {
+      console.error("Error connecting to Supabase:", err);
+      setDbError(err.message || "Unknown error connecting to Supabase");
+    } finally {
+      setDbLoading(false);
+    }
+  };
+
+  // Handle Add Question to Supabase
+  const handleAddQuestion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newQuestionText.trim()) {
+      triggerNotification("error", "দয়া করে প্রশ্নের মূল টেক্সট লিখুন।");
+      return;
+    }
+    
+    // Check options
+    if (newOptions.some(opt => !opt.trim())) {
+      triggerNotification("error", "দয়া করে সবকয়টি অপশনের মান প্রদান করুন।");
+      return;
+    }
+
+    try {
+      setDbLoading(true);
+      const supabase = getSupabase();
+
+      const payload = {
+        subjectName: newSubjectName,
+        questionText: newQuestionText.trim(),
+        options: [...newOptions],
+        correctOptionIndex: correctOptionIdx,
+        explanation: newExplanation.trim() || null
+      };
+
+      const { data, error } = await supabase
+        .from("questions")
+        .insert([payload])
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      triggerNotification("success", "নতুন প্রশ্ন সফলভাবে Supabase ডেটাবেজে যুক্ত করা হয়েছে!");
+      
+      // Reset form fields
+      setNewQuestionText("");
+      setNewOptions(["", "", "", ""]);
+      setCorrectOptionIdx(0);
+      setNewExplanation("");
+
+      // Reload database list
+      await loadQuestionsFromDb();
+    } catch (err: any) {
+      console.error("Error creating question in Supabase:", err);
+      // Fallback local operation if database not synced yet
+      console.log("Adding question to local mockup fallback...");
+      const nextId = questions.length > 0 ? Math.max(...questions.map(q => Number(q.id) || 0)) + 1 : 1;
+      const fallbackQuestion = {
+        id: nextId,
+        subjectName: newSubjectName,
+        questionText: newQuestionText.trim(),
+        options: [...newOptions],
+        correctOptionIndex: correctOptionIdx,
+        explanation: newExplanation.trim() || null
+      };
+      const updated = [fallbackQuestion, ...questions];
+      setQuestions(updated);
+      localStorage.setItem("job_master_admin_questions", JSON.stringify(updated));
+      triggerNotification("success", `প্রশ্ন #${nextId} সফলভাবে লোকাল মেমোরিতে সেভ হয়েছে (লোকাল ফলব্যাক)!`);
+
+      // Reset form fields
+      setNewQuestionText("");
+      setNewOptions(["", "", "", ""]);
+      setCorrectOptionIdx(0);
+      setNewExplanation("");
+    } finally {
+      setDbLoading(false);
+    }
+  };
+
+  // Handle Edit click: populates modal state
+  const handleEditClick = (q: any) => {
+    setEditingQuestion(q);
+    setEditSubjectName(q.subjectName || q.subject_name || "Bangla Literature");
+    setEditQuestionText(q.questionText || q.question_text || q.question || "");
+    
+    let opts = ["", "", "", ""];
+    const rawOpts = q.options || q.choices || q.answers || q.option_list;
+    if (Array.isArray(rawOpts)) {
+      opts = rawOpts.map(String);
+    }
+    setEditOptions(opts);
+
+    const correctIdxVal = q.correctOptionIndex !== undefined ? q.correctOptionIndex : (q.correct_option_index !== undefined ? q.correct_option_index : (q.correctIndex !== undefined ? q.correctIndex : 0));
+    setEditCorrectOptionIdx(Number(correctIdxVal));
+    setEditExplanation(q.explanation || "");
+  };
+
+  // Handle Update Question on Supabase
+  const handleUpdateQuestion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingQuestion) return;
+
+    if (!editQuestionText.trim()) {
+      triggerNotification("error", "দয়া করে প্রশ্নের মূল টেক্সট লিখুন।");
+      return;
+    }
+    if (editOptions.some(opt => !opt.trim())) {
+      triggerNotification("error", "দয়া করে সবকয়টি অপশনের মান প্রদান করুন।");
+      return;
+    }
+
+    try {
+      setDbLoading(true);
+      const supabase = getSupabase();
+
+      // Support camelCase, snake_case, and original field schema parameters for maximum resilience
+      const payload: any = {
+        subjectName: editSubjectName,
+        subject_name: editSubjectName,
+        questionText: editQuestionText.trim(),
+        question_text: editQuestionText.trim(),
+        question: editQuestionText.trim(),
+        options: [...editOptions],
+        correctOptionIndex: editCorrectOptionIdx,
+        correct_option_index: editCorrectOptionIdx,
+        correctIndex: editCorrectOptionIdx,
+        explanation: editExplanation.trim() || null
+      };
+
+      const { error } = await supabase
+        .from("questions")
+        .update(payload)
+        .eq("id", editingQuestion.id);
+
+      if (error) {
+        throw error;
+      }
+
+      triggerNotification("success", "প্রশ্নটি সফলভাবে Supabase ডেটাবেজে আপডেট করা হয়েছে!");
+      setEditingQuestion(null);
+      await loadQuestionsFromDb();
+    } catch (err: any) {
+      console.error("Error updating question in Supabase:", err);
+      // Fallback local update
+      const updated = questions.map(q => {
+        if (q.id === editingQuestion.id) {
+          return {
+            ...q,
+            subjectName: editSubjectName,
+            questionText: editQuestionText.trim(),
+            options: [...editOptions],
+            correctOptionIndex: editCorrectOptionIdx,
+            explanation: editExplanation.trim() || null
+          };
+        }
+        return q;
+      });
+      setQuestions(updated);
+      localStorage.setItem("job_master_admin_questions", JSON.stringify(updated));
+      triggerNotification("success", "প্রশ্নটি লোকাল মেমোরিতে সফলভাবে আপডেট হয়েছে!");
+      setEditingQuestion(null);
+    } finally {
+      setDbLoading(false);
+    }
+  };
+
+  // Handle Delete Question from Supabase
+  const handleDeleteQuestion = async (id: string | number) => {
+    try {
+      setDbLoading(true);
+      const supabase = getSupabase();
+
+      const { error } = await supabase
+        .from("questions")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        throw error;
+      }
+
+      triggerNotification("success", "প্রশ্নটি সফলভাবে Supabase থেকে ডিলিট করা হয়েছে!");
+      await loadQuestionsFromDb();
+    } catch (err: any) {
+      console.error("Error deleting question from Supabase:", err);
+      // Fallback local delete
+      const updated = questions.filter(q => q.id !== id);
+      setQuestions(updated);
+      localStorage.setItem("job_master_admin_questions", JSON.stringify(updated));
+      triggerNotification("success", "প্রশ্নটি লোকাল মেমোরি থেকে মুছে ফেলা হয়েছে।");
+    } finally {
+      setDbLoading(false);
+    }
+  };
+
+  // Seeding Database Helper
+  const handleSeedDatabase = async () => {
+    if (!confirm("আপনি কি নিশ্চিত যে আপনি ৩১টি প্রাক-সংজ্ঞায়িত ডেমো প্রশ্ন Supabase ডেটাবেজে সিড করতে চান?")) return;
+    try {
+      setDbLoading(true);
+      const supabase = getSupabase();
+
+      const payloads = QUIZ_QUESTIONS.map((q, idx) => {
+        const subIndex = idx % SUBJECTS.length;
+        return {
+          subjectName: SUBJECTS[subIndex],
+          questionText: q.question,
+          options: q.options,
+          correctOptionIndex: q.correctIndex,
+          explanation: `এটি ${SUBJECTS[subIndex]} বিষয়ের একটি অত্যন্ত গুরুত্বপূর্ণ প্রশ্ন যা বিগত বছরগুলোতে প্রতিযোগিতামূলক পরীক্ষায় এসেছে।`
+        };
+      });
+
+      const { error } = await supabase
+        .from("questions")
+        .insert(payloads);
+
+      if (error) {
+        throw error;
+      }
+
+      triggerNotification("success", "৩১টি ডেমো প্রশ্ন সফলভাবে Supabase-এ সিড করা হয়েছে!");
+      await loadQuestionsFromDb();
+    } catch (err: any) {
+      console.error("Error seeding database:", err);
+      triggerNotification("error", `সিড করতে ব্যর্থ: ${err.message}`);
+    } finally {
+      setDbLoading(false);
+    }
+  };
+
+  // Handle Option Value Change
+  const handleOptionChange = (index: number, val: string) => {
+    const updated = [...newOptions];
+    updated[index] = val;
+    setNewOptions(updated);
+  };
+
+  // Handle Edit Option Value Change
+  const handleEditOptionChange = (index: number, val: string) => {
+    const updated = [...editOptions];
+    updated[index] = val;
+    setEditOptions(updated);
   };
 
   // Handle Login passcode submit
@@ -223,52 +478,6 @@ export default function AdminPage() {
     setIsAuthenticated(false);
     setPasscode("");
     triggerNotification("success", "সফলভাবে লগআউট করা হয়েছে।");
-  };
-
-  // Handle Add Question
-  const handleAddQuestion = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newQuestionText.trim()) {
-      triggerNotification("error", "দয়া করে প্রশ্নের মূল টেক্সট লিখুন।");
-      return;
-    }
-    
-    // Check if any options are empty
-    if (newOptions.some(opt => !opt.trim())) {
-      triggerNotification("error", "দয়া করে সবকয়টি অপশনের মান প্রদান করুন।");
-      return;
-    }
-
-    const newId = questions.length > 0 ? Math.max(...questions.map(q => q.id)) + 1 : 1;
-    const newQuestion: Question = {
-      id: newId,
-      question: newQuestionText.trim(),
-      options: [...newOptions],
-      correctIndex: correctOptionIdx
-    };
-
-    const updated = [newQuestion, ...questions];
-    saveQuestions(updated);
-
-    // Reset Form
-    setNewQuestionText("");
-    setNewOptions(["", "", "", ""]);
-    setCorrectOptionIdx(0);
-    triggerNotification("success", `প্রশ্ন #${newId} সফলভাবে যুক্ত করা হয়েছে!`);
-  };
-
-  // Handle Delete Question
-  const handleDeleteQuestion = (id: number) => {
-    const updated = questions.filter(q => q.id !== id);
-    saveQuestions(updated);
-    triggerNotification("success", "প্রশ্নটি সফলভাবে মুছে ফেলা হয়েছে।");
-  };
-
-  // Handle Option Value Change
-  const handleOptionChange = (index: number, val: string) => {
-    const updated = [...newOptions];
-    updated[index] = val;
-    setNewOptions(updated);
   };
 
   // Handle User Status Change (Ban/Unban toggle)
@@ -622,7 +831,7 @@ export default function AdminPage() {
             <div className="space-y-6 animate-fade-in">
               
               {/* Form Card */}
-              <div className="bg-white border border-slate-100 rounded-[2rem] p-5 sm:p-6 shadow-sm space-y-4">
+              <div className="bg-white border border-slate-100 rounded-[2rem] p-5 sm:p-6 shadow-sm space-y-4 text-left">
                 <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
                   <div className="w-7 h-7 bg-orange-50 text-[#FF6A00] rounded-lg flex items-center justify-center shrink-0">
                     <Plus className="w-4 h-4 stroke-[2.5px]" />
@@ -633,19 +842,37 @@ export default function AdminPage() {
                 </div>
 
                 <form onSubmit={handleAddQuestion} className="space-y-4">
-                  {/* Question Text */}
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
-                      প্রশ্ন (Question text in Bangla/English)
-                    </label>
-                    <input 
-                      type="text"
-                      placeholder="যেমন: বাংলাদেশের দীর্ঘতম নদী কোনটি?"
-                      value={newQuestionText}
-                      onChange={(e) => setNewQuestionText(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] focus:ring-2 focus:ring-[#FF6A00]/20 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold focus:outline-none transition-all text-slate-800"
-                      required
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Question Text */}
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
+                        প্রশ্ন (Question Text in Bangla/English)
+                      </label>
+                      <input 
+                        type="text"
+                        placeholder="যেমন: বাংলাদেশের দীর্ঘতম নদী কোনটি?"
+                        value={newQuestionText}
+                        onChange={(e) => setNewQuestionText(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] focus:ring-2 focus:ring-[#FF6A00]/20 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold focus:outline-none transition-all text-slate-800"
+                        required
+                      />
+                    </div>
+
+                    {/* Subject Selector */}
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
+                        বিষয় নির্বাচন করুন (MCQ Subject Group)
+                      </label>
+                      <select
+                        value={newSubjectName}
+                        onChange={(e) => setNewSubjectName(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold focus:outline-none transition-all text-slate-800 cursor-pointer"
+                      >
+                        {SUBJECTS.map((sub) => (
+                          <option key={sub} value={sub}>{sub}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   {/* Options inputs */}
@@ -670,101 +897,285 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  {/* Correct Answer Index Selector */}
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
-                      সঠিক উত্তর নির্বাচন করুন (Correct Option Index)
-                    </label>
-                    <select
-                      value={correctOptionIdx}
-                      onChange={(e) => setCorrectOptionIdx(parseInt(e.target.value))}
-                      className="bg-slate-50 border border-slate-200 focus:border-[#FF6A00] rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold focus:outline-none transition-all text-slate-800 cursor-pointer"
-                    >
-                      <option value={0}>অপশন ১ (Option 1)</option>
-                      <option value={1}>অপশন ২ (Option 2)</option>
-                      <option value={2}>অপশন ৩ (Option 3)</option>
-                      <option value={3}>অপশন ৪ (Option 4)</option>
-                    </select>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Correct Answer Index Selector */}
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
+                        সঠিক উত্তর নির্বাচন করুন (Correct Option Index)
+                      </label>
+                      <select
+                        value={correctOptionIdx}
+                        onChange={(e) => setCorrectOptionIdx(parseInt(e.target.value))}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold focus:outline-none transition-all text-slate-800 cursor-pointer"
+                      >
+                        <option value={0}>অপশন ১ (Option 1)</option>
+                        <option value={1}>অপশন ২ (Option 2)</option>
+                        <option value={2}>অপশন ৩ (Option 3)</option>
+                        <option value={3}>অপশন ৪ (Option 4)</option>
+                      </select>
+                    </div>
+
+                    {/* Explanation */}
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
+                        বিশ্লেষণ বা ব্যাখ্যা (Explanation - Optional)
+                      </label>
+                      <input 
+                        type="text"
+                        placeholder="যেমন: মেঘনা নদী বাংলাদেশের দীর্ঘতম ও বৃহত্তম নদী।"
+                        value={newExplanation}
+                        onChange={(e) => setNewExplanation(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] focus:ring-2 focus:ring-[#FF6A00]/20 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold focus:outline-none transition-all text-slate-800"
+                      />
+                    </div>
                   </div>
 
                   {/* Submit button */}
-                  <button
-                    type="submit"
-                    className="bg-[#FF6A00] hover:bg-orange-600 text-white font-black text-xs sm:text-sm px-6 py-3.5 rounded-2xl active:scale-95 transition-all shadow-md shadow-orange-500/10 cursor-pointer flex items-center gap-1.5"
-                  >
-                    <Plus className="w-4 h-4 stroke-[2.5px]" />
-                    প্রশ্ন যুক্ত করুন
-                  </button>
+                  <div className="pt-2 flex items-center gap-3">
+                    <button
+                      type="submit"
+                      disabled={dbLoading}
+                      className="bg-[#FF6A00] hover:bg-orange-600 disabled:bg-slate-400 text-white font-black text-xs sm:text-sm px-6 py-3.5 rounded-2xl active:scale-95 transition-all shadow-md shadow-orange-500/10 cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Plus className="w-4 h-4 stroke-[2.5px]" />
+                      প্রশ্ন যুক্ত করুন
+                    </button>
+
+                    {dbLoading && (
+                      <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
+                        <RefreshCw className="w-4 h-4 animate-spin text-orange-500" />
+                        সংরক্ষণ হচ্ছে...
+                      </div>
+                    )}
+                  </div>
                 </form>
               </div>
 
-              {/* Table List Card */}
-              <div className="bg-white border border-slate-100 rounded-[2rem] shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-                  <h3 className="font-extrabold text-sm text-slate-800">
-                    বিদ্যমান প্রশ্ন ব্যাংক তালিকা
-                  </h3>
-                  <span className="text-[10px] font-extrabold bg-slate-100 text-slate-500 px-3 py-1 rounded-full">
-                    মোট: {questions.length} টি প্রশ্ন
-                  </span>
+              {/* Search, Filter, Refresh & Seeding Toolbar */}
+              <div className="bg-slate-50 border border-slate-100 rounded-[2rem] p-5 sm:p-6 space-y-4 text-left">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <h4 className="font-extrabold text-slate-800 text-sm">প্রশ্ন ব্যাংক ফিল্টারিং ও অনুসন্ধান</h4>
+                    <p className="text-[11px] text-slate-400 font-bold">বিষয়ভিত্তিক অনুসন্ধান এবং সরাসরি লাইভ ডেটাবেজ সিঙ্কিং টুলস</p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Manual Sync */}
+                    <button
+                      onClick={loadQuestionsFromDb}
+                      disabled={dbLoading}
+                      className="bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                      title="লাইভ Supabase থেকে ডেটা রিফ্রেশ করুন"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 text-[#FF6A00] ${dbLoading ? "animate-spin" : ""}`} />
+                      রিফ্রেশ সিঙ্ক (Sync)
+                    </button>
+
+                    {/* Seed Database button */}
+                    <button
+                      onClick={handleSeedDatabase}
+                      disabled={dbLoading}
+                      className="bg-orange-50 hover:bg-orange-100 border border-orange-200/50 text-[#FF6A00] font-black text-xs px-4 py-2.5 rounded-xl transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                      title="৩১টি প্রশ্ন দিয়ে ডেটাবেজ সিড করুন"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      ৩১টি ডেমো প্রশ্ন সিড (Seed)
+                    </button>
+                  </div>
                 </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  {/* Search Query Input */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase pl-1 block">কীওয়ার্ড খুঁজুন</label>
+                    <input 
+                      type="text"
+                      placeholder="প্রশ্ন টেক্সট দিয়ে সার্চ করুন..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-white border border-slate-200 focus:border-[#FF6A00] rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none transition-all text-slate-800"
+                    />
+                  </div>
+
+                  {/* Subject Filter Dropdown */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase pl-1 block">বিষয় অনুযায়ী ফিল্টার</label>
+                    <select
+                      value={selectedSubjectFilter}
+                      onChange={(e) => setSelectedSubjectFilter(e.target.value)}
+                      className="w-full bg-white border border-slate-200 focus:border-[#FF6A00] rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none transition-all text-slate-800 cursor-pointer"
+                    >
+                      <option value="All">সকল বিষয় (All Subjects)</option>
+                      {SUBJECTS.map((sub) => (
+                        <option key={sub} value={sub}>{sub}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Table List Card */}
+              <div className="bg-white border border-slate-100 rounded-[2rem] shadow-sm overflow-hidden text-left">
+                <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <h3 className="font-extrabold text-sm text-slate-800">
+                      বিদ্যমান প্রশ্ন ব্যাংক তালিকা
+                    </h3>
+                    <p className="text-[10px] text-slate-400 font-bold">লাইভ Supabase প্রশ্ন ব্যাংক সংগ্রহশালা</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-extrabold bg-slate-100 text-slate-500 px-3 py-1 rounded-full">
+                      মোট: {questions.length} টি প্রশ্ন
+                    </span>
+                    {searchQuery || selectedSubjectFilter !== "All" ? (
+                      <span className="text-[10px] font-extrabold bg-orange-50 text-[#FF6A00] px-3 py-1 rounded-full">
+                        ফিল্টার্ড: {
+                          questions.filter((q: any) => {
+                            const subName = q.subjectName || q.subject_name || "";
+                            const qText = q.questionText || q.question_text || q.question || "";
+                            const matchesSubject = selectedSubjectFilter === "All" || subName === selectedSubjectFilter;
+                            const matchesSearch = qText.toLowerCase().includes(searchQuery.toLowerCase());
+                            return matchesSubject && matchesSearch;
+                          }).length
+                        } টি
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+
+                {dbError && (
+                  <div className="p-4 bg-amber-50 border-b border-amber-100 text-amber-800 text-xs font-semibold flex items-center gap-2">
+                    <AlertOctagon className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>{dbError} প্যানেলটি এখন ডেমো/লোকাল মেমোরি ফলব্যাকে চলছে। প্রশ্ন সিড করতে বা রিয়েল-টাইম সংরক্ষণ করতে Supabase টেবিল তৈরি করুন।</span>
+                  </div>
+                )}
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-slate-50/50 border-b border-slate-100">
                         <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-center w-14">ID</th>
-                        <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">প্রশ্ন (Question)</th>
+                        <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">বিষয় ও প্রশ্ন (Subject & MCQ)</th>
                         <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">সম্ভাব্য অপশনসমূহ (Options)</th>
-                        <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider w-40">সঠিক উত্তর</th>
-                        <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-center w-24">অ্যাকশন</th>
+                        <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider w-40">সদুপায় সঠিক উত্তর</th>
+                        <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-center w-32">অ্যাকশন</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {questions.map((q) => (
-                        <tr key={q.id} className="hover:bg-slate-50/20 transition-all">
-                          <td className="p-4 text-xs font-mono font-bold text-slate-400 text-center">#{q.id}</td>
-                          <td className="p-4">
-                            <span className="text-xs sm:text-sm font-bold text-slate-800 leading-snug block">
-                              {q.question}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <div className="grid grid-cols-2 gap-1 max-w-sm">
-                              {q.options.map((opt, oIdx) => (
-                                <span 
-                                  key={oIdx} 
-                                  className={`text-[10px] font-semibold px-2 py-1 rounded-lg truncate ${
-                                    oIdx === q.correctIndex 
-                                      ? "bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold" 
-                                      : "bg-slate-50 text-slate-500 border border-transparent"
-                                  }`}
-                                >
-                                  {oIdx + 1}. {opt}
+                      {questions
+                        .filter((q: any) => {
+                          const subName = q.subjectName || q.subject_name || "";
+                          const qText = q.questionText || q.question_text || q.question || "";
+                          const matchesSubject = selectedSubjectFilter === "All" || subName === selectedSubjectFilter;
+                          const matchesSearch = qText.toLowerCase().includes(searchQuery.toLowerCase());
+                          return matchesSubject && matchesSearch;
+                        })
+                        .map((q) => {
+                          const idVal = q.id;
+                          const subjectLabel = q.subjectName || q.subject_name || "Bangla Literature";
+                          const questionText = q.questionText || q.question_text || q.question || "";
+                          const explanationText = q.explanation || "";
+                          
+                          // options parsing safely
+                          let options: string[] = ["", "", "", ""];
+                          const rawOpts = q.options || q.choices || q.answers;
+                          if (Array.isArray(rawOpts)) {
+                            options = rawOpts.map(String);
+                          } else if (typeof rawOpts === "string") {
+                            try {
+                              const parsed = JSON.parse(rawOpts);
+                              if (Array.isArray(parsed)) options = parsed.map(String);
+                            } catch {
+                              options = rawOpts.split(",").map((s: string) => s.trim());
+                            }
+                          }
+
+                          const correctIdxVal = q.correctOptionIndex !== undefined ? q.correctOptionIndex : (q.correct_option_index !== undefined ? q.correct_option_index : (q.correctIndex !== undefined ? q.correctIndex : 0));
+                          const correctIdx = Number(correctIdxVal);
+
+                          return (
+                            <tr key={idVal} className="hover:bg-slate-50/20 transition-all">
+                              <td className="p-4 text-[10px] font-mono font-bold text-slate-400 text-center truncate max-w-[60px]" title={String(idVal)}>
+                                {typeof idVal === "number" ? `#${idVal}` : `#${String(idVal).slice(0, 6)}...`}
+                              </td>
+                              <td className="p-4 max-w-sm">
+                                <div className="space-y-1">
+                                  <span className="text-[9px] font-extrabold bg-[#FF6A00]/5 text-[#FF6A00] border border-[#FF6A00]/10 px-2 py-0.5 rounded-full inline-block">
+                                    {subjectLabel}
+                                  </span>
+                                  <span className="text-xs sm:text-sm font-bold text-slate-800 leading-snug block">
+                                    {questionText}
+                                  </span>
+                                  {explanationText && (
+                                    <span className="text-[10px] font-semibold text-slate-400 block italic leading-normal">
+                                      ব্যাখ্যা: {explanationText}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                <div className="grid grid-cols-2 gap-1.5 max-w-sm">
+                                  {options.map((opt, oIdx) => (
+                                    <span 
+                                      key={oIdx} 
+                                      className={`text-[10px] font-semibold px-2 py-1 rounded-lg truncate ${
+                                        oIdx === correctIdx 
+                                          ? "bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold" 
+                                          : "bg-slate-50 text-slate-500 border border-transparent"
+                                      }`}
+                                    >
+                                      {oIdx + 1}. {opt || `অপশন ${oIdx + 1}`}
+                                    </span>
+                                  ))}
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                <span className="text-xs font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-lg inline-block truncate max-w-[150px]">
+                                  {options[correctIdx] || options[0] || "অপশন ১"}
                                 </span>
-                              ))}
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <span className="text-xs font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-lg inline-block">
-                              {q.options[q.correctIndex]}
-                            </span>
-                          </td>
-                          <td className="p-4 text-center">
-                            <button
-                              onClick={() => {
-                                if (confirm(`প্রশ্ন #${q.id} মুছে ফেলতে চান?`)) {
-                                  handleDeleteQuestion(q.id);
-                                }
-                              }}
-                              className="p-2 bg-rose-50 hover:bg-rose-100 border border-rose-100/50 text-rose-600 rounded-xl transition-colors active:scale-90 cursor-pointer"
-                              title="Delete Question"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                              </td>
+                              <td className="p-4 text-center">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  {/* Edit Button */}
+                                  <button
+                                    onClick={() => handleEditClick(q)}
+                                    className="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200/50 text-slate-600 rounded-xl transition-colors active:scale-90 cursor-pointer"
+                                    title="Edit Question"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5 text-slate-500" />
+                                  </button>
+
+                                  {/* Delete Button */}
+                                  <button
+                                    onClick={() => {
+                                      if (confirm(`আপনি কি নিশ্চিত যে আপনি এই প্রশ্নটি মুছে ফেলতে চান?`)) {
+                                        handleDeleteQuestion(idVal);
+                                      }
+                                    }}
+                                    className="p-2 bg-rose-50 hover:bg-rose-100 border border-rose-100/50 text-rose-600 rounded-xl transition-colors active:scale-90 cursor-pointer"
+                                    title="Delete Question"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+
+                      {questions.filter((q: any) => {
+                        const subName = q.subjectName || q.subject_name || "";
+                        const qText = q.questionText || q.question_text || q.question || "";
+                        const matchesSubject = selectedSubjectFilter === "All" || subName === selectedSubjectFilter;
+                        const matchesSearch = qText.toLowerCase().includes(searchQuery.toLowerCase());
+                        return matchesSubject && matchesSearch;
+                      }).length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="p-8 text-center text-xs font-bold text-slate-400">
+                            কোনো প্রশ্ন পাওয়া যায়নি! দয়া করে ডেমো প্রশ্ন সিড করুন অথবা নতুন প্রশ্ন যোগ করুন।
                           </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
