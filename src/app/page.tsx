@@ -391,7 +391,7 @@ export default function Home() {
         if (data && data.length > 0) {
           const mappedQuestions: Question[] = data.map((q: any) => {
             let questionText = "Untitled Question";
-            const possibleQuestionKeys = ["question", "question_text", "text", "questiontext", "title"];
+            const possibleQuestionKeys = ["questionText", "question_text", "question", "title", "text", "questiontext"];
             for (const key of possibleQuestionKeys) {
               if (q[key] !== undefined && q[key] !== null) {
                 questionText = String(q[key]);
@@ -1227,7 +1227,7 @@ export default function Home() {
 
                   {/* Question header */}
                   <h4 className="font-extrabold text-lg text-slate-800 leading-snug">
-                    {currentQuestion.question}
+                    {(currentQuestion as any).questionText || currentQuestion.question || (currentQuestion as any).title || "Untitled Question"}
                   </h4>
 
                   {/* Timer meter */}

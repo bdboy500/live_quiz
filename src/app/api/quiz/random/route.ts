@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
     // Map each question to standard frontend interface format
     const mappedQuestions = selected.map((q: any) => {
-      const questionText = q.questionText || q.question_text || q.question || q.text || "Untitled Question";
+      const questionText = q.questionText || q.question || q.title || q.question_text || q.text || "Untitled Question";
       
       let options: string[] = [];
       const rawOptions = q.options || q.choices || q.answers || q.option_list;

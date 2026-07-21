@@ -1065,7 +1065,7 @@ export default function AdminPage() {
                       {questions
                         .filter((q: any) => {
                           const subName = q.subjectName || q.subject_name || "";
-                          const qText = q.questionText || q.question_text || q.question || "";
+                          const qText = q.questionText || q.question || q.title || q.question_text || "";
                           const matchesSubject = selectedSubjectFilter === "All" || subName === selectedSubjectFilter;
                           const matchesSearch = qText.toLowerCase().includes(searchQuery.toLowerCase());
                           return matchesSubject && matchesSearch;
@@ -1073,7 +1073,7 @@ export default function AdminPage() {
                         .map((q) => {
                           const idVal = q.id;
                           const subjectLabel = q.subjectName || q.subject_name || "Bangla Literature";
-                          const questionText = q.questionText || q.question_text || q.question || "";
+                          const questionText = q.questionText || q.question || q.title || q.question_text || "Untitled Question";
                           const explanationText = q.explanation || "";
                           
                           // options parsing safely
@@ -1165,7 +1165,7 @@ export default function AdminPage() {
 
                       {questions.filter((q: any) => {
                         const subName = q.subjectName || q.subject_name || "";
-                        const qText = q.questionText || q.question_text || q.question || "";
+                        const qText = q.questionText || q.question || q.title || q.question_text || "";
                         const matchesSubject = selectedSubjectFilter === "All" || subName === selectedSubjectFilter;
                         const matchesSearch = qText.toLowerCase().includes(searchQuery.toLowerCase());
                         return matchesSubject && matchesSearch;
