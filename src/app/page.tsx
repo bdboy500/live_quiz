@@ -709,7 +709,7 @@ export default function Home() {
         <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-300/25 rounded-full blur-[120px] pointer-events-none z-0 hidden sm:block" />
 
         {/* Primary Smartphone Container Mockup - 100% Edge-to-Edge on Mobile Devices */}
-        <div className="w-full max-w-full sm:max-w-md bg-slate-50 min-h-screen sm:min-h-0 sm:h-[840px] sm:max-h-[880px] rounded-none sm:rounded-[40px] border-none sm:border sm:border-slate-200/50 shadow-none sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] flex flex-col relative overflow-hidden z-10">
+        <div className="w-full max-w-full sm:max-w-md bg-slate-50 h-[100dvh] sm:h-[840px] sm:max-h-[880px] rounded-none sm:rounded-[40px] border-none sm:border sm:border-slate-200/50 shadow-none sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] flex flex-col relative overflow-hidden z-10">
         
         {/* Smartphone Upper Bezel Accent (Only visible on sm+ screen for aesthetics) */}
         <div className="hidden sm:block absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-6 bg-slate-900 rounded-b-3xl z-50">
@@ -2696,7 +2696,7 @@ export default function Home() {
 
         {/* Android/iOS App-Style Bottom Navigation Bar (Persistent across all screens including Quiz) */}
         <nav 
-          className="sticky bottom-0 left-0 right-0 w-full bg-white border-t border-slate-100 flex justify-around items-center pt-2.5 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] z-50 transition-all duration-300"
+          className="shrink-0 w-full bg-white border-t border-slate-100 flex justify-around items-center pt-2.5 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] z-50 transition-all duration-300 relative"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)" }}
           id="mobile-bottom-nav"
         >
