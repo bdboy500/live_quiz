@@ -84,9 +84,10 @@ export default function AdminPage() {
   const [dbLoading, setDbLoading] = useState<boolean>(false);
   const [dbError, setDbError] = useState<string | null>(null);
 
-  // Search & Subject Filter states
+  // Search, Subject Filter & Display Limit states
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState("All");
+  const [displayLimit, setDisplayLimit] = useState<number>(10);
 
   // Add Question form states
   const [newSubjectName, setNewSubjectName] = useState<string>("Bangla Literature");
@@ -846,362 +847,381 @@ export default function AdminPage() {
           {/* ========================================================= */}
           {/* VIEW A: QUESTIONS MANAGEMENT                               */}
           {/* ========================================================= */}
-          {activeTab === "questions" && (
-            <div className="space-y-6 animate-fade-in">
-              
-              {/* Form Card */}
-              <div className="bg-white border border-slate-100 rounded-[2rem] p-5 sm:p-6 shadow-sm space-y-4 text-left">
-                <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
-                  <div className="w-7 h-7 bg-orange-50 text-[#FF6A00] rounded-lg flex items-center justify-center shrink-0">
-                    <Plus className="w-4 h-4 stroke-[2.5px]" />
-                  </div>
-                  <h3 className="font-extrabold text-sm text-slate-800 tracking-tight">
-                    নতুন প্রশ্ন যোগ করুন (Add New MCQ Question)
-                  </h3>
-                </div>
+          {activeTab === "questions" && (() => {
+            const filteredQuestions = questions.filter((q: any) => {
+              const subName = q.subjectName || q.subject_name || "";
+              const qText = q.questionText || q.question || q.title || q.question_text || "";
+              const matchesSubject = selectedSubjectFilter === "All" || subName === selectedSubjectFilter;
+              const matchesSearch = qText.toLowerCase().includes(searchQuery.toLowerCase());
+              return matchesSubject && matchesSearch;
+            });
 
-                <form onSubmit={handleAddQuestion} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Question Text */}
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
-                        প্রশ্ন (Question Text in Bangla/English)
-                      </label>
-                      <input 
-                        type="text"
-                        placeholder="যেমন: বাংলাদেশের দীর্ঘতম নদী কোনটি?"
-                        value={newQuestionText}
-                        onChange={(e) => setNewQuestionText(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] focus:ring-2 focus:ring-[#FF6A00]/20 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold focus:outline-none transition-all text-slate-800"
-                        required
-                      />
+            const displayedQuestions = filteredQuestions.slice(0, displayLimit);
+
+            return (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-fade-in text-left">
+                
+                {/* Left Column (Desktop View): Add New MCQ Question Form */}
+                <div className="lg:col-span-5 space-y-6">
+                  <div className="bg-white border border-slate-100 rounded-[2rem] p-5 sm:p-6 shadow-sm space-y-4">
+                    <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
+                      <div className="w-7 h-7 bg-orange-50 text-[#FF6A00] rounded-lg flex items-center justify-center shrink-0">
+                        <Plus className="w-4 h-4 stroke-[2.5px]" />
+                      </div>
+                      <h3 className="font-extrabold text-sm text-slate-800 tracking-tight">
+                        নতুন প্রশ্ন যোগ করুন (Add New MCQ Question)
+                      </h3>
                     </div>
 
-                    {/* Subject Selector */}
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
-                        বিষয় নির্বাচন করুন (MCQ Subject Group)
-                      </label>
-                      <select
-                        value={newSubjectName}
-                        onChange={(e) => setNewSubjectName(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold focus:outline-none transition-all text-slate-800 cursor-pointer"
-                      >
-                        {SUBJECTS.map((sub) => (
-                          <option key={sub} value={sub}>{sub}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Options inputs */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
-                      সম্ভাব্য অপশনসমূহ (4 MCQ Options)
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {newOptions.map((opt, idx) => (
-                        <div key={idx} className="space-y-1">
-                          <span className="text-[9px] font-black text-slate-400 pl-1">অপশন {idx + 1}</span>
+                    <form onSubmit={handleAddQuestion} className="space-y-4">
+                      <div className="space-y-3">
+                        {/* Question Text */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
+                            প্রশ্ন (Question Text in Bangla/English)
+                          </label>
                           <input 
                             type="text"
-                            placeholder={`অপশন ${idx + 1} এর মান`}
-                            value={opt}
-                            onChange={(e) => handleOptionChange(idx, e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] rounded-2xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none transition-all text-slate-800"
+                            placeholder="যেমন: বাংলাদেশের দীর্ঘতম নদী কোনটি?"
+                            value={newQuestionText}
+                            onChange={(e) => setNewQuestionText(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] focus:ring-2 focus:ring-[#FF6A00]/20 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold focus:outline-none transition-all text-slate-800"
                             required
                           />
                         </div>
-                      ))}
+
+                        {/* Subject Selector */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
+                            বিষয় নির্বাচন করুন (MCQ Subject Group)
+                          </label>
+                          <select
+                            value={newSubjectName}
+                            onChange={(e) => setNewSubjectName(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold focus:outline-none transition-all text-slate-800 cursor-pointer"
+                          >
+                            {SUBJECTS.map((sub) => (
+                              <option key={sub} value={sub}>{sub}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Options inputs */}
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
+                          সম্ভাব্য অপশনসমূহ (4 MCQ Options)
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {newOptions.map((opt, idx) => (
+                            <div key={idx} className="space-y-1">
+                              <span className="text-[9px] font-black text-slate-400 pl-1">অপশন {idx + 1}</span>
+                              <input 
+                                type="text"
+                                placeholder={`অপশন ${idx + 1} এর মান`}
+                                value={opt}
+                                onChange={(e) => handleOptionChange(idx, e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] rounded-2xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none transition-all text-slate-800"
+                                required
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        {/* Correct Answer Index Selector */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
+                            সঠিক উত্তর নির্বাচন করুন (Correct Option Index)
+                          </label>
+                          <select
+                            value={correctOptionIdx}
+                            onChange={(e) => setCorrectOptionIdx(parseInt(e.target.value))}
+                            className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold focus:outline-none transition-all text-slate-800 cursor-pointer"
+                          >
+                            <option value={0}>অপশন ১ (Option 1)</option>
+                            <option value={1}>অপশন ২ (Option 2)</option>
+                            <option value={2}>অপশন ৩ (Option 3)</option>
+                            <option value={3}>অপশন ৪ (Option 4)</option>
+                          </select>
+                        </div>
+
+                        {/* Explanation */}
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
+                            বিশ্লেষণ বা ব্যাখ্যা (Explanation - Optional)
+                          </label>
+                          <input 
+                            type="text"
+                            placeholder="যেমন: মেঘনা নদী বাংলাদেশের দীর্ঘতম ও বৃহত্তম নদী।"
+                            value={newExplanation}
+                            onChange={(e) => setNewExplanation(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] focus:ring-2 focus:ring-[#FF6A00]/20 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold focus:outline-none transition-all text-slate-800"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Submit button */}
+                      <div className="pt-2 flex items-center gap-3">
+                        <button
+                          type="submit"
+                          disabled={dbLoading}
+                          className="bg-[#FF6A00] hover:bg-orange-600 disabled:bg-slate-400 text-white font-black text-xs sm:text-sm px-6 py-3.5 rounded-2xl active:scale-95 transition-all shadow-md shadow-orange-500/10 cursor-pointer flex items-center gap-1.5"
+                        >
+                          <Plus className="w-4 h-4 stroke-[2.5px]" />
+                          প্রশ্ন যুক্ত করুন
+                        </button>
+
+                        {dbLoading && (
+                          <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
+                            <RefreshCw className="w-4 h-4 animate-spin text-orange-500" />
+                            সংরক্ষণ হচ্ছে...
+                          </div>
+                        )}
+                      </div>
+                    </form>
+                  </div>
+                </div>
+
+                {/* Right Column (Desktop View): Question Bank Filter, Controls & Question List */}
+                <div className="lg:col-span-7 space-y-6">
+                  
+                  {/* Search, Filter, Refresh, Seeding Toolbar & Display Limit Selection */}
+                  <div className="bg-slate-50 border border-slate-100 rounded-[2rem] p-5 sm:p-6 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <h4 className="font-extrabold text-slate-800 text-sm">প্রশ্ন ব্যাংক ফিল্টারিং ও অনুসন্ধান</h4>
+                        <p className="text-[11px] text-slate-400 font-bold">বিষয়ভিত্তিক অনুসন্ধান এবং সরাসরি লাইভ ডেটাবেজ সিঙ্কিং টুলস</p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        {/* Manual Sync */}
+                        <button
+                          onClick={loadQuestionsFromDb}
+                          disabled={dbLoading}
+                          className="bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-bold text-xs px-3.5 py-2 rounded-xl transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                          title="লাইভ Supabase থেকে ডেটা রিফ্রেশ করুন"
+                        >
+                          <RefreshCw className={`w-3.5 h-3.5 text-[#FF6A00] ${dbLoading ? "animate-spin" : ""}`} />
+                          রিফ্রেশ সিঙ্ক
+                        </button>
+
+                        {/* Seed Database button */}
+                        <button
+                          onClick={handleSeedDatabase}
+                          disabled={dbLoading}
+                          className="bg-orange-50 hover:bg-orange-100 border border-orange-200/50 text-[#FF6A00] font-black text-xs px-3.5 py-2 rounded-xl transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                          title="৩১টি প্রশ্ন দিয়ে ডেটাবেজ সিড করুন"
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          ৩১টি ডেমো সিড
+                        </button>
+                      </div>
                     </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                      {/* Search Query Input */}
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase pl-1 block">কীওয়ার্ড খুঁজুন</label>
+                        <input 
+                          type="text"
+                          placeholder="প্রশ্ন টেক্সট দিয়ে সার্চ করুন..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="w-full bg-white border border-slate-200 focus:border-[#FF6A00] rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none transition-all text-slate-800"
+                        />
+                      </div>
+
+                      {/* Subject Filter Dropdown */}
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase pl-1 block">বিষয় অনুযায়ী ফিল্টার</label>
+                        <select
+                          value={selectedSubjectFilter}
+                          onChange={(e) => setSelectedSubjectFilter(e.target.value)}
+                          className="w-full bg-white border border-slate-200 focus:border-[#FF6A00] rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none transition-all text-slate-800 cursor-pointer"
+                        >
+                          <option value="All">সকল বিষয় (All Subjects)</option>
+                          {SUBJECTS.map((sub) => (
+                            <option key={sub} value={sub}>{sub}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Display Limit Options (10, 20, 30, 40, 50) */}
+                    <div className="pt-2 border-t border-slate-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">
+                        সর্বোচ্চ কতটি প্রশ্ন দেখাবে (সর্বশেষ সংযোজিত):
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        {[10, 20, 30, 40, 50].map((num) => (
+                          <button
+                            key={num}
+                            type="button"
+                            onClick={() => setDisplayLimit(num)}
+                            className={`px-3 py-1 text-xs font-extrabold rounded-lg transition-all cursor-pointer ${
+                              displayLimit === num
+                                ? "bg-[#FF6A00] text-white shadow-sm shadow-orange-500/20"
+                                : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80"
+                            }`}
+                          >
+                            {num}টি
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Correct Answer Index Selector */}
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
-                        সঠিক উত্তর নির্বাচন করুন (Correct Option Index)
-                      </label>
-                      <select
-                        value={correctOptionIdx}
-                        onChange={(e) => setCorrectOptionIdx(parseInt(e.target.value))}
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] rounded-2xl px-4 py-3 text-xs sm:text-sm font-bold focus:outline-none transition-all text-slate-800 cursor-pointer"
-                      >
-                        <option value={0}>অপশন ১ (Option 1)</option>
-                        <option value={1}>অপশন ২ (Option 2)</option>
-                        <option value={2}>অপশন ৩ (Option 3)</option>
-                        <option value={3}>অপশন ৪ (Option 4)</option>
-                      </select>
+                  {/* Table List Card */}
+                  <div className="bg-white border border-slate-100 rounded-[2rem] shadow-sm overflow-hidden">
+                    <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="space-y-0.5">
+                        <h3 className="font-extrabold text-sm text-slate-800">
+                          বিদ্যমান প্রশ্ন ব্যাংক তালিকা
+                        </h3>
+                        <p className="text-[10px] text-slate-400 font-bold">লাইভ Supabase প্রশ্ন ব্যাংক সংগ্রহশালা (সর্বশেষ প্রশ্নসমূহ প্রথমে)</p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[10px] font-extrabold bg-slate-100 text-slate-500 px-3 py-1 rounded-full">
+                          মোট: {questions.length} টি
+                        </span>
+                        <span className="text-[10px] font-extrabold bg-orange-50 text-[#FF6A00] border border-orange-100 px-3 py-1 rounded-full">
+                          প্রদর্শিত: {displayedQuestions.length} / {filteredQuestions.length} টি (সর্বোচ্চ {displayLimit} টি)
+                        </span>
+                      </div>
                     </div>
 
-                    {/* Explanation */}
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-extrabold text-slate-500 uppercase block pl-1">
-                        বিশ্লেষণ বা ব্যাখ্যা (Explanation - Optional)
-                      </label>
-                      <input 
-                        type="text"
-                        placeholder="যেমন: মেঘনা নদী বাংলাদেশের দীর্ঘতম ও বৃহত্তম নদী।"
-                        value={newExplanation}
-                        onChange={(e) => setNewExplanation(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-200 focus:border-[#FF6A00] focus:ring-2 focus:ring-[#FF6A00]/20 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold focus:outline-none transition-all text-slate-800"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Submit button */}
-                  <div className="pt-2 flex items-center gap-3">
-                    <button
-                      type="submit"
-                      disabled={dbLoading}
-                      className="bg-[#FF6A00] hover:bg-orange-600 disabled:bg-slate-400 text-white font-black text-xs sm:text-sm px-6 py-3.5 rounded-2xl active:scale-95 transition-all shadow-md shadow-orange-500/10 cursor-pointer flex items-center gap-1.5"
-                    >
-                      <Plus className="w-4 h-4 stroke-[2.5px]" />
-                      প্রশ্ন যুক্ত করুন
-                    </button>
-
-                    {dbLoading && (
-                      <div className="flex items-center gap-1.5 text-xs text-slate-400 font-bold">
-                        <RefreshCw className="w-4 h-4 animate-spin text-orange-500" />
-                        সংরক্ষণ হচ্ছে...
+                    {dbError && (
+                      <div className="p-4 bg-amber-50 border-b border-amber-100 text-amber-800 text-xs font-semibold flex items-center gap-2">
+                        <AlertOctagon className="w-4 h-4 text-amber-600 shrink-0" />
+                        <span>{dbError} প্যানেলটি এখন ডেমো/লোকাল মেমোরি ফলব্যাকে চলছে।</span>
                       </div>
                     )}
-                  </div>
-                </form>
-              </div>
 
-              {/* Search, Filter, Refresh & Seeding Toolbar */}
-              <div className="bg-slate-50 border border-slate-100 rounded-[2rem] p-5 sm:p-6 space-y-4 text-left">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <h4 className="font-extrabold text-slate-800 text-sm">প্রশ্ন ব্যাংক ফিল্টারিং ও অনুসন্ধান</h4>
-                    <p className="text-[11px] text-slate-400 font-bold">বিষয়ভিত্তিক অনুসন্ধান এবং সরাসরি লাইভ ডেটাবেজ সিঙ্কিং টুলস</p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2">
-                    {/* Manual Sync */}
-                    <button
-                      onClick={loadQuestionsFromDb}
-                      disabled={dbLoading}
-                      className="bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
-                      title="লাইভ Supabase থেকে ডেটা রিফ্রেশ করুন"
-                    >
-                      <RefreshCw className={`w-3.5 h-3.5 text-[#FF6A00] ${dbLoading ? "animate-spin" : ""}`} />
-                      রিফ্রেশ সিঙ্ক (Sync)
-                    </button>
-
-                    {/* Seed Database button */}
-                    <button
-                      onClick={handleSeedDatabase}
-                      disabled={dbLoading}
-                      className="bg-orange-50 hover:bg-orange-100 border border-orange-200/50 text-[#FF6A00] font-black text-xs px-4 py-2.5 rounded-xl transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
-                      title="৩১টি প্রশ্ন দিয়ে ডেটাবেজ সিড করুন"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      ৩১টি ডেমো প্রশ্ন সিড (Seed)
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                  {/* Search Query Input */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase pl-1 block">কীওয়ার্ড খুঁজুন</label>
-                    <input 
-                      type="text"
-                      placeholder="প্রশ্ন টেক্সট দিয়ে সার্চ করুন..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full bg-white border border-slate-200 focus:border-[#FF6A00] rounded-xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none transition-all text-slate-800"
-                    />
-                  </div>
-
-                  {/* Subject Filter Dropdown */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase pl-1 block">বিষয় অনুযায়ী ফিল্টার</label>
-                    <select
-                      value={selectedSubjectFilter}
-                      onChange={(e) => setSelectedSubjectFilter(e.target.value)}
-                      className="w-full bg-white border border-slate-200 focus:border-[#FF6A00] rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none transition-all text-slate-800 cursor-pointer"
-                    >
-                      <option value="All">সকল বিষয় (All Subjects)</option>
-                      {SUBJECTS.map((sub) => (
-                        <option key={sub} value={sub}>{sub}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Table List Card */}
-              <div className="bg-white border border-slate-100 rounded-[2rem] shadow-sm overflow-hidden text-left">
-                <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="space-y-0.5">
-                    <h3 className="font-extrabold text-sm text-slate-800">
-                      বিদ্যমান প্রশ্ন ব্যাংক তালিকা
-                    </h3>
-                    <p className="text-[10px] text-slate-400 font-bold">লাইভ Supabase প্রশ্ন ব্যাংক সংগ্রহশালা</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-extrabold bg-slate-100 text-slate-500 px-3 py-1 rounded-full">
-                      মোট: {questions.length} টি প্রশ্ন
-                    </span>
-                    {searchQuery || selectedSubjectFilter !== "All" ? (
-                      <span className="text-[10px] font-extrabold bg-orange-50 text-[#FF6A00] px-3 py-1 rounded-full">
-                        ফিল্টার্ড: {
-                          questions.filter((q: any) => {
-                            const subName = q.subjectName || q.subject_name || "";
-                            const qText = q.questionText || q.question_text || q.question || "";
-                            const matchesSubject = selectedSubjectFilter === "All" || subName === selectedSubjectFilter;
-                            const matchesSearch = qText.toLowerCase().includes(searchQuery.toLowerCase());
-                            return matchesSubject && matchesSearch;
-                          }).length
-                        } টি
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-
-                {dbError && (
-                  <div className="p-4 bg-amber-50 border-b border-amber-100 text-amber-800 text-xs font-semibold flex items-center gap-2">
-                    <AlertOctagon className="w-4 h-4 text-amber-600 shrink-0" />
-                    <span>{dbError} প্যানেলটি এখন ডেমো/লোকাল মেমোরি ফলব্যাকে চলছে। প্রশ্ন সিড করতে বা রিয়েল-টাইম সংরক্ষণ করতে Supabase টেবিল তৈরি করুন।</span>
-                  </div>
-                )}
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50/50 border-b border-slate-100">
-                        <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-center w-14">ID</th>
-                        <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">বিষয় ও প্রশ্ন (Subject & MCQ)</th>
-                        <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">সম্ভাব্য অপশনসমূহ (Options)</th>
-                        <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider w-40">সদুপায় সঠিক উত্তর</th>
-                        <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-center w-32">অ্যাকশন</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {questions
-                        .filter((q: any) => {
-                          const subName = q.subjectName || q.subject_name || "";
-                          const qText = q.questionText || q.question || q.title || q.question_text || "";
-                          const matchesSubject = selectedSubjectFilter === "All" || subName === selectedSubjectFilter;
-                          const matchesSearch = qText.toLowerCase().includes(searchQuery.toLowerCase());
-                          return matchesSubject && matchesSearch;
-                        })
-                        .map((q) => {
-                          const idVal = q.id;
-                          const subjectLabel = q.subjectName || q.subject_name || "Bangla Literature";
-                          const questionText = q.questionText || q.question || q.title || q.question_text || "Untitled Question";
-                          const explanationText = q.explanation || "";
-                          
-                          // options parsing safely
-                          let options: string[] = ["", "", "", ""];
-                          const rawOpts = q.options || q.choices || q.answers;
-                          if (Array.isArray(rawOpts)) {
-                            options = rawOpts.map(String);
-                          } else if (typeof rawOpts === "string") {
-                            try {
-                              const parsed = JSON.parse(rawOpts);
-                              if (Array.isArray(parsed)) options = parsed.map(String);
-                            } catch {
-                              options = rawOpts.split(",").map((s: string) => s.trim());
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-slate-50/50 border-b border-slate-100">
+                            <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-center w-14">ID</th>
+                            <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">বিষয় ও প্রশ্ন (Subject & MCQ)</th>
+                            <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">সম্ভাব্য অপশনসমূহ (Options)</th>
+                            <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider w-40">সঠিক উত্তর</th>
+                            <th className="p-4 text-[10px] font-black text-slate-400 uppercase tracking-wider text-center w-32">অ্যাকশন</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {displayedQuestions.map((q) => {
+                            const idVal = q.id;
+                            const subjectLabel = q.subjectName || q.subject_name || "Bangla Literature";
+                            const questionText = q.questionText || q.question || q.title || q.question_text || "Untitled Question";
+                            const explanationText = q.explanation || "";
+                            
+                            // options parsing safely
+                            let options: string[] = ["", "", "", ""];
+                            const rawOpts = q.options || q.choices || q.answers;
+                            if (Array.isArray(rawOpts)) {
+                              options = rawOpts.map(String);
+                            } else if (typeof rawOpts === "string") {
+                              try {
+                                const parsed = JSON.parse(rawOpts);
+                                if (Array.isArray(parsed)) options = parsed.map(String);
+                              } catch {
+                                options = rawOpts.split(",").map((s: string) => s.trim());
+                              }
                             }
-                          }
 
-                          const correctIdxVal = q.correctOptionIndex !== undefined ? q.correctOptionIndex : (q.correct_option_index !== undefined ? q.correct_option_index : (q.correctIndex !== undefined ? q.correctIndex : 0));
-                          const correctIdx = Number(correctIdxVal);
+                            const correctIdxVal = q.correctOptionIndex !== undefined ? q.correctOptionIndex : (q.correct_option_index !== undefined ? q.correct_option_index : (q.correctIndex !== undefined ? q.correctIndex : 0));
+                            const correctIdx = Number(correctIdxVal);
 
-                          return (
-                            <tr key={idVal} className="hover:bg-slate-50/20 transition-all">
-                              <td className="p-4 text-[10px] font-mono font-bold text-slate-400 text-center truncate max-w-[60px]" title={String(idVal)}>
-                                {typeof idVal === "number" ? `#${idVal}` : `#${String(idVal).slice(0, 6)}...`}
-                              </td>
-                              <td className="p-4 max-w-sm">
-                                <div className="space-y-1">
-                                  <span className="text-[9px] font-extrabold bg-[#FF6A00]/5 text-[#FF6A00] border border-[#FF6A00]/10 px-2 py-0.5 rounded-full inline-block">
-                                    {subjectLabel}
-                                  </span>
-                                  <span className="text-xs sm:text-sm font-bold text-slate-800 leading-snug block">
-                                    {questionText}
-                                  </span>
-                                  {explanationText && (
-                                    <span className="text-[10px] font-semibold text-slate-400 block italic leading-normal">
-                                      ব্যাখ্যা: {explanationText}
+                            return (
+                              <tr key={idVal} className="hover:bg-slate-50/20 transition-all">
+                                <td className="p-4 text-[10px] font-mono font-bold text-slate-400 text-center truncate max-w-[60px]" title={String(idVal)}>
+                                  {typeof idVal === "number" ? `#${idVal}` : `#${String(idVal).slice(0, 6)}...`}
+                                </td>
+                                <td className="p-4 max-w-sm">
+                                  <div className="space-y-1">
+                                    <span className="text-[9px] font-extrabold bg-[#FF6A00]/5 text-[#FF6A00] border border-[#FF6A00]/10 px-2 py-0.5 rounded-full inline-block">
+                                      {subjectLabel}
                                     </span>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="p-4">
-                                <div className="grid grid-cols-2 gap-1.5 max-w-sm">
-                                  {options.map((opt, oIdx) => (
-                                    <span 
-                                      key={oIdx} 
-                                      className={`text-[10px] font-semibold px-2 py-1 rounded-lg truncate ${
-                                        oIdx === correctIdx 
-                                          ? "bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold" 
-                                          : "bg-slate-50 text-slate-500 border border-transparent"
-                                      }`}
+                                    <span className="text-xs sm:text-sm font-bold text-slate-800 leading-snug block">
+                                      {questionText}
+                                    </span>
+                                    {explanationText && (
+                                      <span className="text-[10px] font-semibold text-slate-400 block italic leading-normal">
+                                        ব্যাখ্যা: {explanationText}
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="p-4">
+                                  <div className="grid grid-cols-2 gap-1.5 max-w-sm">
+                                    {options.map((opt, oIdx) => (
+                                      <span 
+                                        key={oIdx} 
+                                        className={`text-[10px] font-semibold px-2 py-1 rounded-lg truncate ${
+                                          oIdx === correctIdx 
+                                            ? "bg-emerald-50 text-emerald-700 border border-emerald-100 font-bold" 
+                                            : "bg-slate-50 text-slate-500 border border-transparent"
+                                        }`}
+                                      >
+                                        {oIdx + 1}. {opt || `অপশন ${oIdx + 1}`}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </td>
+                                <td className="p-4">
+                                  <span className="text-xs font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-lg inline-block truncate max-w-[150px]">
+                                    {options[correctIdx] || options[0] || "অপশন ১"}
+                                  </span>
+                                </td>
+                                <td className="p-4 text-center">
+                                  <div className="flex items-center justify-center gap-1.5">
+                                    {/* Edit Button */}
+                                    <button
+                                      onClick={() => handleEditClick(q)}
+                                      className="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200/50 text-slate-600 rounded-xl transition-colors active:scale-90 cursor-pointer"
+                                      title="Edit Question"
                                     >
-                                      {oIdx + 1}. {opt || `অপশন ${oIdx + 1}`}
-                                    </span>
-                                  ))}
-                                </div>
-                              </td>
-                              <td className="p-4">
-                                <span className="text-xs font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-lg inline-block truncate max-w-[150px]">
-                                  {options[correctIdx] || options[0] || "অপশন ১"}
-                                </span>
-                              </td>
-                              <td className="p-4 text-center">
-                                <div className="flex items-center justify-center gap-1.5">
-                                  {/* Edit Button */}
-                                  <button
-                                    onClick={() => handleEditClick(q)}
-                                    className="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200/50 text-slate-600 rounded-xl transition-colors active:scale-90 cursor-pointer"
-                                    title="Edit Question"
-                                  >
-                                    <Pencil className="w-3.5 h-3.5 text-slate-500" />
-                                  </button>
+                                      <Pencil className="w-3.5 h-3.5 text-slate-500" />
+                                    </button>
 
-                                  {/* Delete Button */}
-                                  <button
-                                    onClick={() => {
-                                      if (confirm(`আপনি কি নিশ্চিত যে আপনি এই প্রশ্নটি মুছে ফেলতে চান?`)) {
-                                        handleDeleteQuestion(idVal);
-                                      }
-                                    }}
-                                    className="p-2 bg-rose-50 hover:bg-rose-100 border border-rose-100/50 text-rose-600 rounded-xl transition-colors active:scale-90 cursor-pointer"
-                                    title="Delete Question"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
+                                    {/* Delete Button */}
+                                    <button
+                                      onClick={() => {
+                                        if (confirm(`আপনি কি নিশ্চিত যে আপনি এই প্রশ্নটি মুছে ফেলতে চান?`)) {
+                                          handleDeleteQuestion(idVal);
+                                        }
+                                      }}
+                                      className="p-2 bg-rose-50 hover:bg-rose-100 border border-rose-100/50 text-rose-600 rounded-xl transition-colors active:scale-90 cursor-pointer"
+                                      title="Delete Question"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
 
-                      {questions.filter((q: any) => {
-                        const subName = q.subjectName || q.subject_name || "";
-                        const qText = q.questionText || q.question || q.title || q.question_text || "";
-                        const matchesSubject = selectedSubjectFilter === "All" || subName === selectedSubjectFilter;
-                        const matchesSearch = qText.toLowerCase().includes(searchQuery.toLowerCase());
-                        return matchesSubject && matchesSearch;
-                      }).length === 0 && (
-                        <tr>
-                          <td colSpan={5} className="p-8 text-center text-xs font-bold text-slate-400">
-                            কোনো প্রশ্ন পাওয়া যায়নি! দয়া করে ডেমো প্রশ্ন সিড করুন অথবা নতুন প্রশ্ন যোগ করুন।
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                        {displayedQuestions.length === 0 && (
+                          <tr>
+                            <td colSpan={5} className="p-8 text-center text-xs font-bold text-slate-400">
+                              কোনো প্রশ্ন পাওয়া যায়নি! দয়া করে ডেমো প্রশ্ন সিড করুন অথবা নতুন প্রশ্ন যোগ করুন।
+                            </td>
+                          </tr>
+                        )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
                 </div>
-              </div>
 
-            </div>
-          )}
+              </div>
+            );
+          })()}
 
           {/* ========================================================= */}
           {/* VIEW B: USER MANAGEMENT                                    */}
