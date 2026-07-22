@@ -668,7 +668,7 @@ export default function Home() {
       <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-300/25 rounded-full blur-[120px] pointer-events-none z-0" />
 
       {/* Primary Smartphone Container Mockup */}
-      <div className="w-full max-w-md bg-slate-50 h-[100dvh] sm:h-[840px] sm:max-h-[880px] sm:rounded-[40px] sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] flex flex-col relative overflow-hidden border border-slate-200/50 z-10">
+      <div className="w-full max-w-md bg-slate-50 h-[100dvh] sm:h-[840px] sm:max-h-[880px] sm:rounded-[40px] sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] flex flex-col relative overflow-hidden border border-slate-200/50 z-10 overscroll-none">
         
         {/* Smartphone Upper Bezel Accent (Only visible on sm+ screen for aesthetics) */}
         <div className="hidden sm:block absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-6 bg-slate-900 rounded-b-3xl z-50">
@@ -676,8 +676,8 @@ export default function Home() {
           <div className="absolute top-1 right-8 w-2 h-2 bg-slate-800 rounded-full" />
         </div>
 
-        {/* Main Header of the App (Persistent on Home, Courses, Routine, Tests, Profile, Quiz) */}
-        <header className="bg-white/95 backdrop-blur-md border-b border-slate-100 px-5 pt-7 pb-4 sm:pt-10 flex items-center justify-between shadow-sm sticky top-0 z-40 shrink-0">
+        {/* Main Header of the App (Persistent and Fixed on all screens) */}
+        <header className="bg-white/95 backdrop-blur-md border-b border-slate-100 px-5 pt-7 pb-4 sm:pt-10 flex items-center justify-between shadow-sm z-40 shrink-0 relative">
           {/* Left side: Hamburger/Back and brand name */}
           <div className="flex items-center gap-2">
             <button 
@@ -767,7 +767,7 @@ export default function Home() {
         </header>
 
         {/* Scrollable Main Content Frame */}
-        <div className="flex-1 overflow-y-auto pb-24 md:pb-10 bg-slate-50/60">
+        <div className="flex-1 overflow-y-auto overscroll-y-contain pb-24 md:pb-10 bg-slate-50/60">
           
           {/* ========================================================= */}
           {/* 1. SCREEN: HOME                                           */}
