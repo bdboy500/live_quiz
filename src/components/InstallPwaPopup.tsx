@@ -1,31 +1,54 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Download, X, Smartphone, Share, MoreVertical, PlusSquare, Check } from "lucide-react";
+import React, { useState, useEffect, createContext, useContext } from "react";
+import { Download, X, Share, MoreVertical, PlusSquare, Check, Smartphone } from "lucide-react";
 
-export function InstallPwaPopup() {
+interface PwaContextType {
+  isStandalone: boolean;
+  canInstall: boolean;
+  bannerDismissed: boolean;
+  showGuideModal: boolean;
+  installedSuccess: boolean;
+  isIOS: boolean;
+  triggerInstall: () => void;
+  dismissBanner: () => void;
+  closeGuideModal: () => void;
+}
+
+const PwaContext = createContext<PwaContextType>({
+  isStandalone: false,
+  canInstall: true,
+  bannerDismissed: false,
+  showGuideModal: false,
+  installedSuccess: false,
+  isIOS: false,
+  triggerInstall: () => {},
+  dismissBanner: () => {},
+  closeGuideModal: () => {},
+});
+
+export const usePwa = () => useContext(PwaContext);
+
+export function PwaProvider({ children }: { children: React.ReactNode }) {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showBanner, setShowBanner] = useState<boolean>(false);
-  const [showGuideModal, setShowGuideModal] = useState<boolean>(false);
   const [isStandalone, setIsStandalone] = useState<boolean>(false);
-  const [hostDomain, setHostDomain] = useState<string>("jobmaster.app");
-  const [isIOS, setIsIOS] = useState<boolean>(false);
+  const [canInstall, setCanInstall] = useState<boolean>(true);
+  const [bannerDismissed, setBannerDismissed] = useState<boolean>(false);
+  const [showGuideModal, setShowGuideModal] = useState<boolean>(false);
   const [installedSuccess, setInstalledSuccess] = useState<boolean>(false);
+  const [isIOS, setIsIOS] = useState<boolean>(false);
 
   useEffect(() => {
-    // Register service worker
+    // 1. Register Service Worker
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").catch((err) => {
         console.log("Service Worker registration failed:", err);
       });
     }
 
-    // Set current domain name
     if (typeof window !== "undefined") {
-      setHostDomain(window.location.host || "jobmaster.app");
-
-      // Detect standalone mode (already installed)
-      const isStandaloneMode = 
+      // 2. Check Standalone mode
+      const isStandaloneMode =
         window.matchMedia("(display-mode: standalone)").matches ||
         (navigator as any).standalone === true;
 
@@ -36,31 +59,27 @@ export function InstallPwaPopup() {
       const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
       setIsIOS(isIosDevice);
 
-      // Check localStorage for dismissal timestamp (hide for 1 day if dismissed)
-      const lastDismissed = localStorage.getItem("jobmaster_pwa_dismissed");
+      // 3. Check localStorage for dismissal (session/24h dismissal)
+      const lastDismissed = localStorage.getItem("jobmaster_pwa_banner_dismissed");
       const isDismissed = lastDismissed && Date.now() - parseInt(lastDismissed) < 24 * 60 * 60 * 1000;
-
-      if (!isStandaloneMode && !isDismissed) {
-        // Show banner automatically on initial load
-        setShowBanner(true);
+      if (isDismissed) {
+        setBannerDismissed(true);
       }
     }
 
-    // Listen for beforeinstallprompt event
+    // 4. Listen for beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      if (!isStandalone) {
-        setShowBanner(true);
-      }
+      setCanInstall(true);
     };
 
-    // Listen for appinstalled event
+    // 5. Listen for appinstalled event (Strict Auto-Hide)
     const handleAppInstalled = () => {
       setIsStandalone(true);
-      setShowBanner(false);
-      setInstalledSuccess(true);
+      setCanInstall(false);
       setDeferredPrompt(null);
+      setInstalledSuccess(true);
       setTimeout(() => setInstalledSuccess(false), 5000);
     };
 
@@ -71,15 +90,16 @@ export function InstallPwaPopup() {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
       window.removeEventListener("appinstalled", handleAppInstalled);
     };
-  }, [isStandalone]);
+  }, []);
 
-  const handleInstallClick = async () => {
+  const triggerInstall = async () => {
     if (deferredPrompt) {
       try {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === "accepted") {
-          setShowBanner(false);
+          setIsStandalone(true);
+          setCanInstall(false);
           setInstalledSuccess(true);
         }
         setDeferredPrompt(null);
@@ -88,70 +108,130 @@ export function InstallPwaPopup() {
         setShowGuideModal(true);
       }
     } else {
-      // If native prompt isn't directly available (e.g., iOS or browser delay), show step-by-step guide
       setShowGuideModal(true);
     }
   };
 
-  const handleDismiss = () => {
-    setShowBanner(false);
-    localStorage.setItem("jobmaster_pwa_dismissed", Date.now().toString());
+  const dismissBanner = () => {
+    setBannerDismissed(true);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("jobmaster_pwa_banner_dismissed", Date.now().toString());
+    }
   };
 
-  if (isStandalone && !installedSuccess) {
+  const closeGuideModal = () => {
+    setShowGuideModal(false);
+  };
+
+  return (
+    <PwaContext.Provider
+      value={{
+        isStandalone,
+        canInstall,
+        bannerDismissed,
+        showGuideModal,
+        installedSuccess,
+        isIOS,
+        triggerInstall,
+        dismissBanner,
+        closeGuideModal,
+      }}
+    >
+      {children}
+    </PwaContext.Provider>
+  );
+}
+
+/* 1. Compact Header Install Action Button */
+export function HeaderInstallButton() {
+  const { isStandalone, triggerInstall } = usePwa();
+
+  // Strict Auto-Hide: Hide completely if already installed / standalone
+  if (isStandalone) {
     return null;
   }
 
   return (
-    <>
-      {/* 1. TOP POPUP BANNER matching demo.jpeg (input_file_1.png) */}
-      {showBanner && !isStandalone && (
-        <div className="fixed top-2 left-2 right-2 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md z-[9999] animate-slide-down">
-          <div className="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl p-3 shadow-xl shadow-slate-900/15 flex items-center justify-between gap-3 text-left transition-all">
-            
-            {/* Left: App Logo & Info */}
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="relative w-11 h-11 rounded-xl overflow-hidden shrink-0 border border-slate-100 shadow-sm bg-[#FAF9F6]">
-                <img 
-                  src="/icon.svg" 
-                  alt="Job Master Logo" 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="min-w-0 leading-tight">
-                <h4 className="font-black text-xs sm:text-sm text-slate-800 truncate tracking-tight flex items-center gap-1">
-                  Install Job Master
-                </h4>
-                <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
-                  {hostDomain}
-                </p>
-              </div>
-            </div>
+    <button
+      onClick={triggerInstall}
+      className="flex items-center gap-1.5 bg-[#FF6A00] hover:bg-orange-600 text-white font-black text-[11px] px-2.5 py-1.5 rounded-full shadow-sm hover:shadow active:scale-95 transition-all cursor-pointer shrink-0 animate-pulse-subtle"
+      title="Install Job Master App"
+      id="header-install-app-btn"
+    >
+      <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+      <span className="hidden sm:inline">Install</span>
+    </button>
+  );
+}
 
-            {/* Right: Actions */}
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={handleInstallClick}
-                className="bg-[#FF6A00] hover:bg-orange-600 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow-sm hover:shadow active:scale-95 transition-all cursor-pointer flex items-center gap-1.2"
-              >
-                <Download className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Install</span>
-              </button>
+/* 2. Dismissible Bottom Sheet Banner (positioned directly above bottom nav: bottom-16 / bottom-20) */
+export function BottomInstallBanner() {
+  const { isStandalone, bannerDismissed, triggerInstall, dismissBanner } = usePwa();
 
-              <button
-                onClick={handleDismiss}
-                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all cursor-pointer"
-                title="বন্ধ করুন"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+  // Strict Auto-Hide: Hide if already installed or banner was dismissed
+  if (isStandalone || bannerDismissed) {
+    return null;
+  }
 
+  return (
+    <div 
+      className="fixed bottom-16 sm:bottom-6 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md z-[60] animate-slide-up"
+      id="bottom-pwa-install-banner"
+    >
+      <div className="bg-slate-900/95 backdrop-blur-md text-white border border-slate-800 rounded-2xl p-3 shadow-2xl flex items-center justify-between gap-3 transition-all">
+        
+        {/* Left: App Icon & Info */}
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-slate-700 bg-[#FAF9F6] shadow-sm">
+            <img 
+              src="/icon.svg" 
+              alt="Job Master Logo" 
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="min-w-0 leading-tight">
+            <h4 className="font-extrabold text-xs text-white truncate tracking-tight flex items-center gap-1">
+              Install Job Master App
+            </h4>
+            <p className="text-[10px] text-slate-300 font-medium truncate mt-0.5">
+              চাকরি প্রস্তুতি এখন আরও সহজ ও দ্রুত!
+            </p>
           </div>
         </div>
-      )}
 
-      {/* 2. SUCCESS TOAST WHEN INSTALLED */}
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={triggerInstall}
+            className="bg-[#FF6A00] hover:bg-orange-600 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow-md hover:shadow-orange-500/20 active:scale-95 transition-all cursor-pointer flex items-center gap-1"
+            id="bottom-banner-install-btn"
+          >
+            <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span>Install</span>
+          </button>
+
+          <button
+            onClick={dismissBanner}
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all cursor-pointer"
+            title="বন্ধ করুন"
+            id="bottom-banner-close-btn"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+/* 3. Global Guide Modal & Success Toast */
+export function InstallPwaPopup() {
+  const { showGuideModal, closeGuideModal, installedSuccess, isIOS } = usePwa();
+
+  return (
+    <>
+      {/* SUCCESS TOAST WHEN INSTALLED */}
       {installedSuccess && (
         <div className="fixed top-3 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md z-[9999] bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs font-bold animate-fade-in">
           <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
@@ -161,14 +241,14 @@ export function InstallPwaPopup() {
         </div>
       )}
 
-      {/* 3. GUIDED INSTALLATION MODAL (Fallback for iOS or when prompt is deferred) */}
+      {/* GUIDED INSTALLATION MODAL */}
       {showGuideModal && (
         <div className="fixed inset-0 z-[10000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-white rounded-3xl p-6 shadow-2xl max-w-sm w-full relative text-left space-y-4">
             
             <button
-              onClick={() => setShowGuideModal(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-xl"
+              onClick={closeGuideModal}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-xl cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -203,7 +283,7 @@ export function InstallPwaPopup() {
             </div>
 
             <button
-              onClick={() => setShowGuideModal(false)}
+              onClick={closeGuideModal}
               className="w-full bg-[#FF6A00] hover:bg-orange-600 text-white font-extrabold text-xs py-3 rounded-2xl active:scale-95 transition-all shadow-md shadow-orange-500/20 cursor-pointer text-center"
             >
               বুঝেছি (Got It)
