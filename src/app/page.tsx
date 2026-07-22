@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   Play, 
   RotateCcw, 
@@ -306,9 +306,49 @@ export default function Home() {
   const [timeLeft, setTimeLeft] = useState<number>(30);
   const [isTimedOut, setIsTimedOut] = useState<boolean>(false);
 
-  // Settings
+  // Settings & Refresh
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+
+  // Pull-To-Refresh State & Logic
+  const [pullDistance, setPullDistance] = useState<number>(0);
+  const [isPullRefreshing, setIsPullRefreshing] = useState<boolean>(false);
+  const touchStartRef = useRef<number>(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (scrollContainerRef.current && scrollContainerRef.current.scrollTop <= 0) {
+      touchStartRef.current = e.touches[0].clientY;
+    } else {
+      touchStartRef.current = 0;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartRef.current > 0 && scrollContainerRef.current && scrollContainerRef.current.scrollTop <= 0) {
+      const currentY = e.touches[0].clientY;
+      const distance = currentY - touchStartRef.current;
+      if (distance > 0) {
+        const damped = Math.min(distance * 0.45, 80);
+        setPullDistance(damped);
+      } else {
+        setPullDistance(0);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (pullDistance > 50 && !isPullRefreshing) {
+      setIsPullRefreshing(true);
+      setPullDistance(55);
+      if (soundEnabled) quizAudio.playClick();
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } else {
+      setPullDistance(0);
+    }
+    touchStartRef.current = 0;
+  };
 
   // Search filter
   const [coursesSearchQuery, setCoursesSearchQuery] = useState<string>("");
@@ -669,7 +709,7 @@ export default function Home() {
       <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-300/25 rounded-full blur-[120px] pointer-events-none z-0" />
 
       {/* Primary Smartphone Container Mockup */}
-      <div className="w-full max-w-md bg-slate-50 min-h-screen sm:h-[840px] sm:max-h-[880px] sm:rounded-[40px] sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] flex flex-col relative sm:overflow-hidden border border-slate-200/50 z-10">
+      <div className="w-full max-w-md bg-slate-50 h-[100dvh] sm:h-[840px] sm:max-h-[880px] sm:rounded-[40px] sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] flex flex-col relative overflow-hidden border border-slate-200/50 z-10">
         
         {/* Smartphone Upper Bezel Accent (Only visible on sm+ screen for aesthetics) */}
         <div className="hidden sm:block absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-6 bg-slate-900 rounded-b-3xl z-50">
@@ -677,8 +717,8 @@ export default function Home() {
           <div className="absolute top-1 right-8 w-2 h-2 bg-slate-800 rounded-full" />
         </div>
 
-        {/* Main Header of the App (Persistent and moves with document scroll on mobile to hide Chrome URL bar) */}
-        <header className="bg-white/95 backdrop-blur-md border-b border-slate-100 px-4 sm:px-5 pt-3 pb-3 sm:pt-8 sm:pb-3.5 flex items-center justify-between shadow-sm z-40 shrink-0 relative">
+        {/* Main Header of the App (Strictly Fixed on Top, Never Scrolls Out of View) */}
+        <header className="bg-white/95 backdrop-blur-md border-b border-slate-100 px-4 sm:px-5 pt-3 pb-3 sm:pt-8 sm:pb-3.5 flex items-center justify-between shadow-sm z-40 shrink-0 sticky top-0">
           {/* Left side: Hamburger/Back and brand name */}
           <div className="flex items-center gap-2">
             <button 
@@ -742,7 +782,7 @@ export default function Home() {
           </div>
 
           {/* Right side: Search shortcut and Bell icon */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
 
             <button 
               onClick={() => {
@@ -769,8 +809,24 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Main Content Area */}
-        <div className="flex-1 pb-28 md:pb-10 sm:overflow-y-auto bg-slate-50/60">
+        {/* Scrollable Main Content Frame */}
+        <div 
+          ref={scrollContainerRef}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="flex-1 overflow-y-auto overscroll-y-contain pb-28 md:pb-10 bg-slate-50/60 relative"
+        >
+          {/* Pull-To-Refresh Indicator Banner */}
+          <div 
+            className="flex items-center justify-center transition-all duration-200 overflow-hidden bg-orange-50/90 text-[#FF6A00] text-xs font-semibold gap-2 border-b border-orange-100/60"
+            style={{ height: `${pullDistance}px`, opacity: pullDistance > 8 ? 1 : 0 }}
+          >
+            <RotateCcw className={`w-4 h-4 ${isPullRefreshing || pullDistance > 50 ? "animate-spin text-[#FF6A00]" : "text-slate-500"}`} />
+            <span className="text-slate-700 font-medium">
+              {isPullRefreshing ? "রিফ্রেশ হচ্ছে..." : pullDistance > 50 ? "ছেড়ে দিন রিফ্রেশ করতে" : "নিচে টানুন রিফ্রেশ করতে"}
+            </span>
+          </div>
           
           {/* ========================================================= */}
           {/* 1. SCREEN: HOME                                           */}
