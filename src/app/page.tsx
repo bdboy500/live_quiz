@@ -668,7 +668,7 @@ export default function Home() {
       <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-300/25 rounded-full blur-[120px] pointer-events-none z-0" />
 
       {/* Primary Smartphone Container Mockup */}
-      <div className="w-full max-w-md bg-slate-50 min-h-screen sm:min-h-[840px] sm:max-h-[880px] sm:rounded-[40px] sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] flex flex-col justify-between relative overflow-hidden border border-slate-200/50 z-10">
+      <div className="w-full max-w-md bg-slate-50 h-[100dvh] sm:h-[840px] sm:max-h-[880px] sm:rounded-[40px] sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] flex flex-col relative overflow-hidden border border-slate-200/50 z-10">
         
         {/* Smartphone Upper Bezel Accent (Only visible on sm+ screen for aesthetics) */}
         <div className="hidden sm:block absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-6 bg-slate-900 rounded-b-3xl z-50">
