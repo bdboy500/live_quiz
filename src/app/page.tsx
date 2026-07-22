@@ -37,11 +37,13 @@ import {
   Settings,
   LogOut,
   LogIn,
-  Package
+  Package,
+  Download
 } from "lucide-react";
 import { QUIZ_QUESTIONS, Question } from "../data";
 import { getSupabase } from "../lib/supabase";
 import { quizAudio } from "../lib/audio";
+import { InstallPwaPopup } from "../components/InstallPwaPopup";
 
 // Type definition for routine items
 interface RoutineItem {
@@ -654,6 +656,9 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F1F5F9] via-[#E2E8F0] to-[#CBD5E1] flex items-center justify-center p-0 sm:p-6 md:p-8 selection:bg-orange-500 selection:text-white">
       
+      {/* Top PWA Install Popup matching demo.jpeg */}
+      <InstallPwaPopup />
+
       {/* Dynamic Background Blur Balls */}
       <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-300/25 rounded-full blur-[120px] pointer-events-none z-0" />
       <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-300/25 rounded-full blur-[120px] pointer-events-none z-0" />
@@ -2195,6 +2200,24 @@ export default function Home() {
             >
               <BookOpen className="w-4 h-4 text-slate-400" />
               <span>Book Store</span>
+            </button>
+
+            {/* 3.1 Install App */}
+            <button
+              onClick={() => {
+                localStorage.removeItem("jobmaster_pwa_dismissed");
+                window.location.reload();
+                setDrawerOpen(false);
+                if (soundEnabled) quizAudio.playClick();
+              }}
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200/60 text-[#FF6A00] font-extrabold text-xs shadow-sm hover:shadow"
+              id="drawer-item-install-app"
+            >
+              <div className="flex items-center gap-3">
+                <Download className="w-4 h-4 text-[#FF6A00]" />
+                <span>Install Job Master App</span>
+              </div>
+              <span className="text-[9px] bg-[#FF6A00] text-white px-2 py-0.5 rounded-md font-black uppercase">Install</span>
             </button>
 
             {/* 4. Language */}
