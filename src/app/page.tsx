@@ -9,6 +9,7 @@ import {
   Timer, 
   Award, 
   AlertTriangle, 
+  AlertCircle,
   ChevronRight,
   HelpCircle,
   Menu,
@@ -40,7 +41,7 @@ import {
   Package,
   Download
 } from "lucide-react";
-import { QUIZ_QUESTIONS, Question } from "../data";
+import { QUIZ_QUESTIONS, Question, LIVE_QUIZ_ALLOWED_SUBJECTS } from "../data";
 import { getSupabase } from "../lib/supabase";
 import { quizAudio } from "../lib/audio";
 import { PwaProvider, BottomInstallBanner, InstallPwaPopup } from "../components/InstallPwaPopup";
@@ -290,6 +291,7 @@ export default function Home() {
   
   // Database & Loaded Questions State
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [allRawQuestions, setAllRawQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isUsingFallback, setIsUsingFallback] = useState<boolean>(false);
@@ -306,8 +308,57 @@ export default function Home() {
   const [timeLeft, setTimeLeft] = useState<number>(30);
   const [isTimedOut, setIsTimedOut] = useState<boolean>(false);
 
+  // Quit Confirm Modal State
+  const [showQuitConfirmModal, setShowQuitConfirmModal] = useState<boolean>(false);
+  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
+
   // Settings
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+
+  // Helper function to shuffle questions
+  const shuffleArray = <T,>(array: T[]): T[] => {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+
+  // Derive active question
+  const currentQuestion: Question | undefined = questions[currentQuestionIndex];
+  const isCompleted = quizStarted && questions.length > 0 && currentQuestionIndex >= questions.length;
+
+  // Intercept navigation during active quiz
+  const attemptExitQuiz = (targetAction?: () => void) => {
+    if (currentScreen === "quiz" && quizStarted && !isCompleted && !isTimedOut) {
+      setPendingNavigation(() => targetAction || null);
+      setShowQuitConfirmModal(true);
+    } else {
+      if (targetAction) targetAction();
+    }
+  };
+
+  // Exit quiz early and calculate current score result
+  const finishQuizEarly = () => {
+    const totalAnswered = submittedCount;
+    const scoreObtained = score;
+    const pct = totalAnswered > 0 ? Math.round((scoreObtained / totalAnswered) * 100) : 0;
+
+    if (totalAnswered > 0) {
+      const newTestLog: TakenTest = {
+        id: "log_" + Date.now(),
+        name: activeQuizTitle + " (" + activeQuizSubtitle + ")",
+        score: scoreObtained,
+        total: totalAnswered,
+        time: "Just now",
+        percentage: pct
+      };
+      saveTakenTests([newTestLog, ...takenTests]);
+    }
+
+    setCurrentQuestionIndex(questions.length);
+  };
 
   // Search filter
   const [coursesSearchQuery, setCoursesSearchQuery] = useState<string>("");
@@ -465,24 +516,37 @@ export default function Home() {
               id = Number(q.id);
             }
 
+            let subjectVal: string | undefined = undefined;
+            const possibleSubjectKeys = ["subject", "subject_name", "category", "topic", "subjectName", "subject_title"];
+            for (const key of possibleSubjectKeys) {
+              if (q[key] !== undefined && q[key] !== null) {
+                subjectVal = String(q[key]);
+                break;
+              }
+            }
+
             return {
               id,
               question: questionText,
               options,
-              correctIndex
+              correctIndex,
+              subject: subjectVal
             };
           });
 
           mappedQuestions.sort((a, b) => a.id - b.id);
+          setAllRawQuestions(mappedQuestions);
           setQuestions(mappedQuestions);
           setIsUsingFallback(false);
         } else {
+          setAllRawQuestions(QUIZ_QUESTIONS);
           setQuestions(QUIZ_QUESTIONS);
           setIsUsingFallback(true);
         }
       } catch (err: any) {
         console.warn("Falling back to local quiz questions:", err);
         setError(err.message || "Failed to load questions from database.");
+        setAllRawQuestions(QUIZ_QUESTIONS);
         setQuestions(QUIZ_QUESTIONS);
         setIsUsingFallback(true);
       } finally {
@@ -492,10 +556,6 @@ export default function Home() {
 
     fetchQuestions();
   }, []);
-
-  // Derive active question
-  const currentQuestion: Question | undefined = questions[currentQuestionIndex];
-  const isCompleted = quizStarted && questions.length > 0 && currentQuestionIndex >= questions.length;
 
   // Countdown timer logic
   useEffect(() => {
@@ -520,11 +580,35 @@ export default function Home() {
     setActiveQuizTitle(title);
     setActiveQuizSubtitle(subtitle);
     
+    let pool: Question[] = [];
     if (customQuestionSet && customQuestionSet.length > 0) {
-      setQuestions(customQuestionSet);
+      pool = customQuestionSet;
     } else {
-      // Default to Supabase loaded questions/fallbacks
-      setQuestions(isUsingFallback ? QUIZ_QUESTIONS : questions);
+      pool = allRawQuestions.length > 0 ? allRawQuestions : QUIZ_QUESTIONS;
+    }
+
+    if (title === "Live Quiz Game") {
+      const allowed = LIVE_QUIZ_ALLOWED_SUBJECTS;
+      const filtered = pool.filter(q => {
+        if (!q.subject) return true;
+        const s = q.subject.toLowerCase();
+        return allowed.some(a => 
+          s.includes(a.toLowerCase()) || 
+          (a === "Bangladesh Affairs" && (s.includes("bangladesh") || s.includes("বাংলাদেশ"))) ||
+          (a === "International Affairs" && (s.includes("international") || s.includes("আন্তর্জাতিক"))) ||
+          (a === "Geography" && (s.includes("geography") || s.includes("ভূগোল"))) ||
+          (a === "General Science" && (s.includes("science") || s.includes("বিজ্ঞান"))) ||
+          (a === "Technology" && (s.includes("tech") || s.includes("ict") || s.includes("প্রযুক্তি") || s.includes("কম্পিউটার"))) ||
+          (a === "Mental Ability" && (s.includes("mental") || s.includes("iq") || s.includes("মানসিক")))
+        );
+      });
+
+      const candidateSet = filtered.length >= 5 ? filtered : pool;
+      const randomized = shuffleArray(candidateSet);
+      setQuestions(randomized.slice(0, 10));
+    } else {
+      const randomized = shuffleArray(pool);
+      setQuestions(randomized.slice(0, 10));
     }
 
     setQuizStarted(true);
@@ -540,24 +624,20 @@ export default function Home() {
     if (soundEnabled) quizAudio.playClick();
   };
 
-  // Handle option select
+  // Handle option select - Instant feedback & score update
   const handleSelectOption = (index: number) => {
-    if (isSubmitted || isTimedOut) return;
+    if (isSubmitted || isTimedOut || !currentQuestion) return;
+
     setSelectedOptionIndex(index);
-    if (soundEnabled) quizAudio.playClick();
-  };
-
-  // Handle submit answer
-  const handleSubmit = () => {
-    if (selectedOptionIndex === null || isSubmitted || isTimedOut || !currentQuestion) return;
-
-    const correct = selectedOptionIndex === currentQuestion.correctIndex;
+    const correct = index === currentQuestion.correctIndex;
+    
     if (correct) {
       setScore((prev) => prev + 1);
       if (soundEnabled) quizAudio.playSuccess();
     } else {
       if (soundEnabled) quizAudio.playError();
     }
+
     setSubmittedCount((prev) => prev + 1);
     setIsSubmitted(true);
   };
@@ -591,8 +671,32 @@ export default function Home() {
     setCurrentQuestionIndex((prev) => prev + 1);
   };
 
-  // Handle restart quiz
+  // Handle restart quiz with fresh random questions from allowed subjects
   const handleRestart = () => {
+    let pool = allRawQuestions.length > 0 ? allRawQuestions : QUIZ_QUESTIONS;
+    if (activeQuizTitle === "Live Quiz Game") {
+      const allowed = LIVE_QUIZ_ALLOWED_SUBJECTS;
+      const filtered = pool.filter(q => {
+        if (!q.subject) return true;
+        const s = q.subject.toLowerCase();
+        return allowed.some(a => 
+          s.includes(a.toLowerCase()) || 
+          (a === "Bangladesh Affairs" && (s.includes("bangladesh") || s.includes("বাংলাদেশ"))) ||
+          (a === "International Affairs" && (s.includes("international") || s.includes("আন্তর্জাতিক"))) ||
+          (a === "Geography" && (s.includes("geography") || s.includes("ভূগোল"))) ||
+          (a === "General Science" && (s.includes("science") || s.includes("বিজ্ঞান"))) ||
+          (a === "Technology" && (s.includes("tech") || s.includes("ict") || s.includes("প্রযুক্তি") || s.includes("কম্পিউটার"))) ||
+          (a === "Mental Ability" && (s.includes("mental") || s.includes("iq") || s.includes("মানসিক")))
+        );
+      });
+      const candidateSet = filtered.length >= 5 ? filtered : pool;
+      const randomized = shuffleArray(candidateSet);
+      setQuestions(randomized.slice(0, 10));
+    } else {
+      const randomized = shuffleArray(pool);
+      setQuestions(randomized.slice(0, 10));
+    }
+
     setQuizStarted(true);
     setCurrentQuestionIndex(0);
     setScore(0);
@@ -682,7 +786,9 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <button 
               onClick={() => {
-                if (currentScreen === "course-detail" || currentScreen === "prep-sub" || currentScreen === "quiz") {
+                if (currentScreen === "quiz" && quizStarted && !isCompleted && !isTimedOut) {
+                  attemptExitQuiz(() => setCurrentScreen(previousScreen || "home"));
+                } else if (currentScreen === "course-detail" || currentScreen === "prep-sub") {
                   setCurrentScreen(previousScreen || "home");
                 } else {
                   setDrawerOpen(!drawerOpen);
@@ -703,7 +809,7 @@ export default function Home() {
             
             <button 
               onClick={() => {
-                setCurrentScreen("home");
+                attemptExitQuiz(() => setCurrentScreen("home"));
                 if (soundEnabled) quizAudio.playClick();
               }}
               className="flex items-center gap-1.5 ml-1 text-left cursor-pointer active:scale-95 transition-all"
@@ -745,7 +851,7 @@ export default function Home() {
 
             <button 
               onClick={() => {
-                setCurrentScreen("courses");
+                attemptExitQuiz(() => setCurrentScreen("courses"));
                 if (soundEnabled) quizAudio.playClick();
               }}
               className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-full active:scale-95 transition-all cursor-pointer"
@@ -756,7 +862,7 @@ export default function Home() {
 
             <button 
               onClick={() => {
-                setCurrentScreen("routine");
+                attemptExitQuiz(() => setCurrentScreen("routine"));
                 if (soundEnabled) quizAudio.playClick();
               }}
               className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-full relative active:scale-95 transition-all cursor-pointer"
@@ -1293,29 +1399,17 @@ export default function Home() {
                   </div>
 
                   {/* Action row */}
-                  <div>
-                    {!isSubmitted ? (
-                      <button
-                        onClick={handleSubmit}
-                        disabled={selectedOptionIndex === null}
-                        className={`w-full py-4 px-6 font-extrabold rounded-2xl text-xs tracking-wider uppercase transition-all flex items-center justify-center ${
-                          selectedOptionIndex !== null
-                            ? "bg-orange-600 hover:bg-orange-700 text-white shadow-md shadow-orange-500/20 active:scale-[0.98] cursor-pointer"
-                            : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                        }`}
-                      >
-                        উত্তর জমা দিন (Submit)
-                      </button>
-                    ) : (
+                  {isSubmitted && (
+                    <div className="pt-2">
                       <button
                         onClick={handleNext}
-                        className="w-full py-4 px-6 bg-orange-600 hover:bg-orange-700 text-white font-extrabold rounded-2xl text-xs tracking-wider uppercase shadow-md shadow-orange-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="w-full py-4 px-6 bg-orange-600 hover:bg-orange-700 text-white font-extrabold rounded-2xl text-xs tracking-wider uppercase shadow-md shadow-orange-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer animate-fade-in"
                       >
                         {currentQuestionIndex + 1 >= questions.length ? "ফলাফল দেখুন" : "পরবর্তী প্রশ্ন"}
                         <ChevronRight className="w-4 h-4 stroke-[3px]" />
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
                 </div>
               )}
@@ -2646,10 +2740,10 @@ export default function Home() {
           {/* Home Tab */}
           <button
             onClick={() => {
-              setCurrentScreen("home");
+              attemptExitQuiz(() => setCurrentScreen("home"));
               if (soundEnabled) quizAudio.playClick();
             }}
-            className="flex flex-col items-center justify-center flex-1 py-1 active:scale-95 transition-transform"
+            className="flex flex-col items-center justify-center flex-1 py-1 active:scale-95 transition-transform cursor-pointer"
             id="bottom-nav-home"
           >
             <HomeIcon 
@@ -2669,10 +2763,10 @@ export default function Home() {
           {/* Results Tab */}
           <button
             onClick={() => {
-              setCurrentScreen("tests");
+              attemptExitQuiz(() => setCurrentScreen("tests"));
               if (soundEnabled) quizAudio.playClick();
             }}
-            className="flex flex-col items-center justify-center flex-1 py-1 active:scale-95 transition-transform"
+            className="flex flex-col items-center justify-center flex-1 py-1 active:scale-95 transition-transform cursor-pointer"
             id="bottom-nav-results"
           >
             <ClipboardList 
@@ -2692,10 +2786,10 @@ export default function Home() {
           {/* Profile Tab */}
           <button
             onClick={() => {
-              setCurrentScreen("profile");
+              attemptExitQuiz(() => setCurrentScreen("profile"));
               if (soundEnabled) quizAudio.playClick();
             }}
-            className="flex flex-col items-center justify-center flex-1 py-1 active:scale-95 transition-transform"
+            className="flex flex-col items-center justify-center flex-1 py-1 active:scale-95 transition-transform cursor-pointer"
             id="bottom-nav-profile"
           >
             <CircleUser 
@@ -2718,7 +2812,7 @@ export default function Home() {
               setDrawerOpen(!drawerOpen);
               if (soundEnabled) quizAudio.playClick();
             }}
-            className="flex flex-col items-center justify-center flex-1 py-1 active:scale-95 transition-transform"
+            className="flex flex-col items-center justify-center flex-1 py-1 active:scale-95 transition-transform cursor-pointer"
             id="bottom-nav-others"
           >
             <Menu 
@@ -2735,6 +2829,49 @@ export default function Home() {
             </span>
           </button>
         </nav>
+
+        {/* Exit Confirmation Modal Popup */}
+        {showQuitConfirmModal && (
+          <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+            <div className="bg-white rounded-3xl p-6 max-w-xs w-full text-center shadow-2xl space-y-4 border border-slate-100">
+              <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto">
+                <AlertCircle className="w-6 h-6 stroke-[2.5px]" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="font-extrabold text-base text-slate-800">
+                  কুইজ থেকে বের হতে চান?
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                  আপনি এখন বের হয়ে গেলে এ পর্যন্ত দেওয়া আপনার উত্তরগুলোর ({submittedCount}/{questions.length}) ওপর ভিত্তি করে ফলাফল দেখানো হবে।
+                </p>
+              </div>
+              <div className="flex gap-2.5 pt-1">
+                <button
+                  onClick={() => {
+                    setShowQuitConfirmModal(false);
+                    setPendingNavigation(null);
+                  }}
+                  className="flex-1 py-3 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs rounded-xl transition-all cursor-pointer active:scale-95"
+                >
+                  Continue
+                </button>
+                <button
+                  onClick={() => {
+                    setShowQuitConfirmModal(false);
+                    finishQuizEarly();
+                    if (pendingNavigation) {
+                      pendingNavigation();
+                      setPendingNavigation(null);
+                    }
+                  }}
+                  className="flex-1 py-3 px-3 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs rounded-xl transition-all shadow-md shadow-red-500/20 cursor-pointer active:scale-95"
+                >
+                  Yes
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
 
