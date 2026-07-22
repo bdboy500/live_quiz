@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { 
   Play, 
   RotateCcw, 
@@ -306,49 +306,8 @@ export default function Home() {
   const [timeLeft, setTimeLeft] = useState<number>(30);
   const [isTimedOut, setIsTimedOut] = useState<boolean>(false);
 
-  // Settings & Refresh
+  // Settings
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
-
-  // Pull-To-Refresh State & Logic
-  const [pullDistance, setPullDistance] = useState<number>(0);
-  const [isPullRefreshing, setIsPullRefreshing] = useState<boolean>(false);
-  const touchStartRef = useRef<number>(0);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (scrollContainerRef.current && scrollContainerRef.current.scrollTop <= 0) {
-      touchStartRef.current = e.touches[0].clientY;
-    } else {
-      touchStartRef.current = 0;
-    }
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartRef.current > 0 && scrollContainerRef.current && scrollContainerRef.current.scrollTop <= 0) {
-      const currentY = e.touches[0].clientY;
-      const distance = currentY - touchStartRef.current;
-      if (distance > 0) {
-        const damped = Math.min(distance * 0.45, 80);
-        setPullDistance(damped);
-      } else {
-        setPullDistance(0);
-      }
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (pullDistance > 50 && !isPullRefreshing) {
-      setIsPullRefreshing(true);
-      setPullDistance(55);
-      if (soundEnabled) quizAudio.playClick();
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
-    } else {
-      setPullDistance(0);
-    }
-    touchStartRef.current = 0;
-  };
 
   // Search filter
   const [coursesSearchQuery, setCoursesSearchQuery] = useState<string>("");
@@ -810,23 +769,7 @@ export default function Home() {
         </header>
 
         {/* Scrollable Main Content Frame */}
-        <div 
-          ref={scrollContainerRef}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          className="flex-1 overflow-y-auto overscroll-y-contain pb-28 md:pb-10 bg-slate-50/60 relative"
-        >
-          {/* Pull-To-Refresh Indicator Banner */}
-          <div 
-            className="flex items-center justify-center transition-all duration-200 overflow-hidden bg-orange-50/90 text-[#FF6A00] text-xs font-semibold gap-2 border-b border-orange-100/60"
-            style={{ height: `${pullDistance}px`, opacity: pullDistance > 8 ? 1 : 0 }}
-          >
-            <RotateCcw className={`w-4 h-4 ${isPullRefreshing || pullDistance > 50 ? "animate-spin text-[#FF6A00]" : "text-slate-500"}`} />
-            <span className="text-slate-700 font-medium">
-              {isPullRefreshing ? "রিফ্রেশ হচ্ছে..." : pullDistance > 50 ? "ছেড়ে দিন রিফ্রেশ করতে" : "নিচে টানুন রিফ্রেশ করতে"}
-            </span>
-          </div>
+        <div className="flex-1 overflow-y-auto overscroll-y-contain pb-28 md:pb-10 bg-slate-50/60 relative">
           
           {/* ========================================================= */}
           {/* 1. SCREEN: HOME                                           */}
