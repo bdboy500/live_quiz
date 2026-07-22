@@ -729,12 +729,12 @@ export default function Home() {
                     </>
                   ) : (
                     <>
-                      Job <span className="text-[#FF6A00]">Master</span>
+                      Live <span className="text-[#FF6A00]">Quiz Game</span>
                     </>
                   )}
                 </span>
                 <span className="text-[8px] font-bold tracking-[0.08em] text-[#94A3B8] uppercase mt-0.5">
-                  {currentScreen === "course-detail" && selectedCourseDetail ? `${selectedCourseDetail.category} Course Details` : currentScreen === "prep-sub" ? `Select ${selectedPrepSubject} Subject` : currentScreen === "quiz" ? (activeQuizSubtitle || "Live Exam") : "চাকরি এখন হাতের মুঠোয়!"}
+                  {currentScreen === "course-detail" && selectedCourseDetail ? `${selectedCourseDetail.category} Course Details` : currentScreen === "prep-sub" ? `Select ${selectedPrepSubject} Subject` : currentScreen === "quiz" ? (activeQuizSubtitle || "Live Exam") : "খেলতে খেলতে শিখুন"}
                 </span>
               </div>
             </button>
@@ -912,9 +912,9 @@ export default function Home() {
                 <div className="flex items-center justify-between">
                   {/* Left corner: Live... */}
                   <div className="flex items-center gap-1.5 bg-white/15 px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-90"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.9)]"></span>
                     </span>
                     <span>Live</span>
                     <span className="inline-flex gap-0.5 ml-0.5 items-end h-1.5 pb-[2px]">
@@ -936,15 +936,15 @@ export default function Home() {
                 <div className="mt-4 flex items-center justify-between gap-4">
                   <div className="space-y-0.5">
                     <h3 className="text-lg font-black tracking-tight leading-none">
-                      Job Master
+                      Live Quiz Game
                     </h3>
                     <span className="text-orange-100 text-[10px] font-bold tracking-wide block mt-0.5">
-                      চাকরি এখন হাতের মুঠোয়!
+                      খেলতে খেলতে শিখুন
                     </span>
                   </div>
 
                   <button 
-                    onClick={() => startQuizFlow("Job Master", "চাকরি এখন হাতের মুঠোয়!", isUsingFallback ? QUIZ_QUESTIONS : questions)}
+                    onClick={() => startQuizFlow("Live Quiz Game", "খেলতে খেলতে শিখুন", isUsingFallback ? QUIZ_QUESTIONS : questions)}
                     className="bg-white hover:bg-orange-50 text-[#FF4E00] font-extrabold text-xs px-5 py-2.5 rounded-2xl shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer shrink-0"
                   >
                     Start Quiz
