@@ -655,7 +655,7 @@ export default function Home() {
 
   return (
     <PwaProvider>
-      <div className="h-full w-full bg-slate-50 sm:bg-gradient-to-br sm:from-[#F1F5F9] sm:via-[#E2E8F0] sm:to-[#CBD5E1] flex items-center justify-center p-0 sm:p-6 md:p-8 selection:bg-orange-500 selection:text-white fixed sm:relative inset-0 sm:inset-auto overflow-hidden">
+      <div className="min-h-screen sm:min-h-0 h-full w-full bg-slate-50 sm:bg-gradient-to-br sm:from-[#F1F5F9] sm:via-[#E2E8F0] sm:to-[#CBD5E1] flex items-center justify-center p-0 sm:p-6 md:p-8 selection:bg-orange-500 selection:text-white relative">
         
         {/* Global PWA Toast & Guide Modals */}
         <InstallPwaPopup />
@@ -668,7 +668,7 @@ export default function Home() {
         <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-300/25 rounded-full blur-[120px] pointer-events-none z-0 hidden sm:block" />
 
         {/* Primary Smartphone Container Mockup - 100% Edge-to-Edge on Mobile Devices */}
-        <div className="w-full max-w-full sm:max-w-md bg-slate-50 h-full sm:h-[840px] sm:max-h-[880px] rounded-none sm:rounded-[40px] border-none sm:border sm:border-slate-200/50 shadow-none sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] flex flex-col relative overflow-hidden z-10">
+        <div className="w-full max-w-full sm:max-w-md bg-slate-50 h-[100dvh] sm:h-[840px] sm:max-h-[880px] rounded-none sm:rounded-[40px] border-none sm:border sm:border-slate-200/50 shadow-none sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] flex flex-col relative overflow-hidden z-10">
         
         {/* Smartphone Upper Bezel Accent (Only visible on sm+ screen for aesthetics) */}
         <div className="hidden sm:block absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-6 bg-slate-900 rounded-b-3xl z-50">
@@ -677,7 +677,7 @@ export default function Home() {
         </div>
 
         {/* Main Header of the App (Strictly Fixed on Top, Never Scrolls Out of View) */}
-        <header className="bg-white/95 backdrop-blur-md border-b border-slate-100 px-4 sm:px-5 pt-3 pb-3 sm:pt-8 sm:pb-3.5 flex items-center justify-between shadow-sm z-40 shrink-0 sticky top-0 touch-none select-none">
+        <header className="bg-white/95 backdrop-blur-md border-b border-slate-100 px-4 sm:px-5 pt-3 pb-3 sm:pt-8 sm:pb-3.5 flex items-center justify-between shadow-sm z-40 shrink-0 sticky top-0 select-none">
           {/* Left side: Hamburger/Back and brand name */}
           <div className="flex items-center gap-2">
             <button 
@@ -2639,7 +2639,7 @@ export default function Home() {
 
         {/* Android/iOS App-Style Bottom Navigation Bar (Persistent across all screens including Quiz) */}
         <nav 
-          className="shrink-0 w-full bg-white border-t border-slate-100 flex justify-around items-center pt-2.5 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] z-50 transition-all duration-300 relative touch-none select-none"
+          className="shrink-0 w-full bg-white border-t border-slate-100 flex justify-around items-center pt-2.5 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] z-50 transition-all duration-300 relative select-none"
           style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 10px)" }}
           id="mobile-bottom-nav"
         >

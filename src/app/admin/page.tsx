@@ -720,7 +720,7 @@ export default function AdminPage() {
       </header>
 
       {/* Main Body with Sidebar & Content */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row">
         
         {/* Sidebar Left / Tabs Header on Mobile */}
         <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-slate-100 p-4 shrink-0 flex flex-row md:flex-col justify-between md:justify-start gap-2 overflow-x-auto md:overflow-x-visible">
