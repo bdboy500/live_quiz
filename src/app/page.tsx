@@ -1218,7 +1218,7 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <button 
                   onClick={() => {
-                    setCurrentScreen("home");
+                    attemptExitQuiz(() => setCurrentScreen("home"));
                     if (soundEnabled) quizAudio.playClick();
                   }}
                   className="flex items-center gap-1 text-xs font-bold text-[#64748B] hover:text-slate-800 bg-white border border-slate-200/50 px-3.5 py-1.5 rounded-full shadow-sm active:scale-95 transition-all cursor-pointer"
@@ -2861,11 +2861,8 @@ export default function Home() {
                 <button
                   onClick={() => {
                     setShowQuitConfirmModal(false);
+                    setPendingNavigation(null);
                     finishQuizEarly();
-                    if (pendingNavigation) {
-                      pendingNavigation();
-                      setPendingNavigation(null);
-                    }
                   }}
                   className="flex-1 py-3 px-3 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs rounded-xl transition-all shadow-md shadow-red-500/20 cursor-pointer active:scale-95"
                 >
