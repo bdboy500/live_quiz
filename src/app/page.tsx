@@ -677,7 +677,7 @@ export default function Home() {
         </div>
 
         {/* Main Header of the App (Persistent and Fixed on all screens) */}
-        <header className="bg-white/95 backdrop-blur-md border-b border-slate-100 px-5 pt-7 pb-4 sm:pt-10 flex items-center justify-between shadow-sm z-40 shrink-0 relative">
+        <header className="bg-white/95 backdrop-blur-md border-b border-slate-100 px-4 sm:px-5 pt-3 pb-3 sm:pt-8 sm:pb-3.5 flex items-center justify-between shadow-sm z-40 shrink-0 relative">
           {/* Left side: Hamburger/Back and brand name */}
           <div className="flex items-center gap-2">
             <button 
