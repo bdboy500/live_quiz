@@ -722,7 +722,7 @@ export default function Home() {
                     )}
                   </span>
                   <span className="text-[8px] font-bold tracking-[0.08em] text-[#94A3B8] uppercase mt-0.5">
-                    {currentScreen === "course-detail" && selectedCourseDetail ? `${selectedCourseDetail.category} Course Details` : currentScreen === "prep-sub" ? `Select ${selectedPrepSubject} Subject` : "Exam MCQ Hub"}
+                    {currentScreen === "course-detail" && selectedCourseDetail ? `${selectedCourseDetail.category} Course Details` : currentScreen === "prep-sub" ? `Select ${selectedPrepSubject} Subject` : "চাকরি এখন হাতের মুঠোয়!"}
                   </span>
                 </div>
               </button>
@@ -922,15 +922,15 @@ export default function Home() {
                 <div className="mt-4 flex items-center justify-between gap-4">
                   <div className="space-y-0.5">
                     <h3 className="text-lg font-black tracking-tight leading-none">
-                      Live Quiz Game
+                      Job Master
                     </h3>
-                    <span className="text-orange-100 text-[9px] font-bold uppercase tracking-wider block">
-                      Daily Speed MCQ Challenge
+                    <span className="text-orange-100 text-[10px] font-bold tracking-wide block mt-0.5">
+                      চাকরি এখন হাতের মুঠোয়!
                     </span>
                   </div>
 
                   <button 
-                    onClick={() => startQuizFlow("Live Quiz Game", "Daily Speed Challenge", isUsingFallback ? QUIZ_QUESTIONS : questions)}
+                    onClick={() => startQuizFlow("Job Master", "চাকরি এখন হাতের মুঠোয়!", isUsingFallback ? QUIZ_QUESTIONS : questions)}
                     className="bg-white hover:bg-orange-50 text-[#FF4E00] font-extrabold text-xs px-5 py-2.5 rounded-2xl shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer shrink-0"
                   >
                     Start Quiz

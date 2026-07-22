@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Live কুইজ - Daily Quiz Challenge",
-  description: "A clean, minimalist daily quiz challenge application with real-time feedback and a countdown timer.",
+  title: "Job Master - চাকরি এখন হাতের মুঠোয়!",
+  description: "Job Master - চাকরি এখন হাতের মুঠোয়! বিসিএস, ব্যাংক, প্রাইমারি শিক্ষক নিয়োগ ও অন্যান্য প্রতিযোগিতামূলক পরীক্ষার প্রস্তুতি।",
 };
 
 export const viewport: Viewport = {
