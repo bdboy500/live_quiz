@@ -43,7 +43,7 @@ import {
 import { QUIZ_QUESTIONS, Question } from "../data";
 import { getSupabase } from "../lib/supabase";
 import { quizAudio } from "../lib/audio";
-import { PwaProvider, HeaderInstallButton, BottomInstallBanner, InstallPwaPopup } from "../components/InstallPwaPopup";
+import { PwaProvider, BottomInstallBanner, InstallPwaPopup } from "../components/InstallPwaPopup";
 
 // Type definition for routine items
 interface RoutineItem {
@@ -737,9 +737,8 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Right side: Compact Header Install Action, Search shortcut, and Bell icon */}
+            {/* Right side: Search shortcut and Bell icon */}
             <div className="flex items-center gap-2.5">
-              <HeaderInstallButton />
 
               <button 
                 onClick={() => {

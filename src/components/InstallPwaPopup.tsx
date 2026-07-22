@@ -1,30 +1,22 @@
 "use client";
 
 import React, { useState, useEffect, createContext, useContext } from "react";
-import { Download, X, Share, MoreVertical, PlusSquare, Check, Smartphone } from "lucide-react";
+import { Download, X, Check } from "lucide-react";
 
 interface PwaContextType {
   isStandalone: boolean;
-  canInstall: boolean;
   bannerDismissed: boolean;
-  showGuideModal: boolean;
   installedSuccess: boolean;
-  isIOS: boolean;
   triggerInstall: () => void;
   dismissBanner: () => void;
-  closeGuideModal: () => void;
 }
 
 const PwaContext = createContext<PwaContextType>({
   isStandalone: false,
-  canInstall: true,
   bannerDismissed: false,
-  showGuideModal: false,
   installedSuccess: false,
-  isIOS: false,
   triggerInstall: () => {},
   dismissBanner: () => {},
-  closeGuideModal: () => {},
 });
 
 export const usePwa = () => useContext(PwaContext);
@@ -32,11 +24,8 @@ export const usePwa = () => useContext(PwaContext);
 export function PwaProvider({ children }: { children: React.ReactNode }) {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isStandalone, setIsStandalone] = useState<boolean>(false);
-  const [canInstall, setCanInstall] = useState<boolean>(true);
   const [bannerDismissed, setBannerDismissed] = useState<boolean>(false);
-  const [showGuideModal, setShowGuideModal] = useState<boolean>(false);
   const [installedSuccess, setInstalledSuccess] = useState<boolean>(false);
-  const [isIOS, setIsIOS] = useState<boolean>(false);
 
   useEffect(() => {
     // 1. Register Service Worker
@@ -54,12 +43,7 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
 
       setIsStandalone(isStandaloneMode);
 
-      // Detect iOS
-      const userAgent = window.navigator.userAgent.toLowerCase();
-      const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
-      setIsIOS(isIosDevice);
-
-      // 3. Check localStorage for dismissal (session/24h dismissal)
+      // 3. Check localStorage for dismissal
       const lastDismissed = localStorage.getItem("jobmaster_pwa_banner_dismissed");
       const isDismissed = lastDismissed && Date.now() - parseInt(lastDismissed) < 24 * 60 * 60 * 1000;
       if (isDismissed) {
@@ -71,13 +55,11 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setCanInstall(true);
     };
 
     // 5. Listen for appinstalled event (Strict Auto-Hide)
     const handleAppInstalled = () => {
       setIsStandalone(true);
-      setCanInstall(false);
       setDeferredPrompt(null);
       setInstalledSuccess(true);
       setTimeout(() => setInstalledSuccess(false), 5000);
@@ -99,16 +81,12 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === "accepted") {
           setIsStandalone(true);
-          setCanInstall(false);
           setInstalledSuccess(true);
         }
         setDeferredPrompt(null);
       } catch (err) {
         console.error("Install prompt error:", err);
-        setShowGuideModal(true);
       }
-    } else {
-      setShowGuideModal(true);
     }
   };
 
@@ -119,22 +97,14 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const closeGuideModal = () => {
-    setShowGuideModal(false);
-  };
-
   return (
     <PwaContext.Provider
       value={{
         isStandalone,
-        canInstall,
         bannerDismissed,
-        showGuideModal,
         installedSuccess,
-        isIOS,
         triggerInstall,
         dismissBanner,
-        closeGuideModal,
       }}
     >
       {children}
@@ -142,33 +112,11 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-/* 1. Compact Header Install Action Button */
-export function HeaderInstallButton() {
-  const { isStandalone, triggerInstall } = usePwa();
-
-  // Strict Auto-Hide: Hide completely if already installed / standalone
-  if (isStandalone) {
-    return null;
-  }
-
-  return (
-    <button
-      onClick={triggerInstall}
-      className="flex items-center gap-1.5 bg-[#FF6A00] hover:bg-orange-600 text-white font-black text-[11px] px-2.5 py-1.5 rounded-full shadow-sm hover:shadow active:scale-95 transition-all cursor-pointer shrink-0 animate-pulse-subtle"
-      title="Install Job Master App"
-      id="header-install-app-btn"
-    >
-      <Download className="w-3.5 h-3.5 stroke-[2.5]" />
-      <span className="hidden sm:inline">Install</span>
-    </button>
-  );
-}
-
-/* 2. Dismissible Bottom Sheet Banner (positioned directly above bottom nav: bottom-16 / bottom-20) */
+/* Bottom Sheet Banner (positioned directly above bottom nav: bottom-16 / bottom-20) */
 export function BottomInstallBanner() {
   const { isStandalone, bannerDismissed, triggerInstall, dismissBanner } = usePwa();
 
-  // Strict Auto-Hide: Hide if already installed or banner was dismissed
+  // Strict Auto-Hide: Hide completely if already installed or banner was dismissed
   if (isStandalone || bannerDismissed) {
     return null;
   }
@@ -225,73 +173,18 @@ export function BottomInstallBanner() {
   );
 }
 
-/* 3. Global Guide Modal & Success Toast */
+/* Success Toast when installed */
 export function InstallPwaPopup() {
-  const { showGuideModal, closeGuideModal, installedSuccess, isIOS } = usePwa();
+  const { installedSuccess } = usePwa();
+
+  if (!installedSuccess) return null;
 
   return (
-    <>
-      {/* SUCCESS TOAST WHEN INSTALLED */}
-      {installedSuccess && (
-        <div className="fixed top-3 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md z-[9999] bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs font-bold animate-fade-in">
-          <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
-            <Check className="w-4 h-4 text-white stroke-[3]" />
-          </div>
-          <span>Job Master সফলভাবে আপনার মোবাইলের হোম স্ক্রিনে ইনস্টল করা হয়েছে!</span>
-        </div>
-      )}
-
-      {/* GUIDED INSTALLATION MODAL */}
-      {showGuideModal && (
-        <div className="fixed inset-0 z-[10000] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl p-6 shadow-2xl max-w-sm w-full relative text-left space-y-4">
-            
-            <button
-              onClick={closeGuideModal}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-xl cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            {/* Header */}
-            <div className="flex items-center gap-3">
-              <img src="/icon.svg" alt="Job Master Logo" className="w-12 h-12 rounded-2xl border border-slate-100 shadow-sm" />
-              <div>
-                <h3 className="font-extrabold text-slate-900 text-base">Job Master ইনস্টল করুন</h3>
-                <p className="text-xs text-slate-500 font-medium">চাকরি এখন হাতের মুঠোয়!</p>
-              </div>
-            </div>
-
-            <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 text-xs space-y-3 text-slate-700">
-              <p className="font-bold text-[#FF6A00]">
-                {isIOS ? "📱 iOS (iPhone / iPad) ব্যবহারকারীদের জন্য নির্দেশিকা:" : "📱 সহজ ইনস্টলেশন নির্দেশিকা:"}
-              </p>
-
-              {isIOS ? (
-                <ol className="list-decimal pl-4 space-y-2 text-[11px] leading-relaxed">
-                  <li>সাফারি (Safari) ব্রাউজারের নিচে থাকা <span className="inline-flex items-center gap-1 font-extrabold text-slate-900"><Share className="w-3.5 h-3.5 text-blue-600" /> Share</span> বাটনে ট্যাপ করুন।</li>
-                  <li>মেনু স্ক্রোল করে <span className="font-extrabold text-slate-900">'Add to Home Screen'</span> (হোম স্ক্রিনে যোগ করুন) সিলেক্ট করুন।</li>
-                  <li>উপরে ডান কোণায় <span className="font-extrabold text-[#FF6A00]">'Add'</span> চাপলেই এটি অ্যাপ হিসেবে সেভ হয়ে যাবে।</li>
-                </ol>
-              ) : (
-                <ol className="list-decimal pl-4 space-y-2 text-[11px] leading-relaxed">
-                  <li>ব্রাউজারের উপরে ডান কোণায় থাকা <span className="inline-flex items-center gap-1 font-extrabold text-slate-900"><MoreVertical className="w-3.5 h-3.5" /> থ্রি-ডট (Three dots)</span> মেনুতে ট্যাপ করুন।</li>
-                  <li>তালিকা থেকে <span className="font-extrabold text-slate-900"><Download className="w-3.5 h-3.5 inline text-[#FF6A00]" /> 'Install app'</span> অথবা <span className="font-extrabold text-slate-900"><PlusSquare className="w-3.5 h-3.5 inline text-[#FF6A00]" /> 'Add to Home screen'</span> নির্বাচন করুন।</li>
-                  <li>নিশ্চিত করতে <span className="font-extrabold text-[#FF6A00]">'Install'</span> চাপুন।</li>
-                </ol>
-              )}
-            </div>
-
-            <button
-              onClick={closeGuideModal}
-              className="w-full bg-[#FF6A00] hover:bg-orange-600 text-white font-extrabold text-xs py-3 rounded-2xl active:scale-95 transition-all shadow-md shadow-orange-500/20 cursor-pointer text-center"
-            >
-              বুঝেছি (Got It)
-            </button>
-
-          </div>
-        </div>
-      )}
-    </>
+    <div className="fixed top-3 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md z-[9999] bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs font-bold animate-fade-in">
+      <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
+        <Check className="w-4 h-4 text-white stroke-[3]" />
+      </div>
+      <span>Job Master সফলভাবে আপনার মোবাইলের হোম স্ক্রিনে ইনস্টল করা হয়েছে!</span>
+    </div>
   );
 }
