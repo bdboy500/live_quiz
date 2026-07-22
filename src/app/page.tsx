@@ -308,6 +308,7 @@ export default function Home() {
 
   // Settings
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
   // Search filter
   const [coursesSearchQuery, setCoursesSearchQuery] = useState<string>("");
@@ -668,7 +669,7 @@ export default function Home() {
       <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-300/25 rounded-full blur-[120px] pointer-events-none z-0" />
 
       {/* Primary Smartphone Container Mockup */}
-      <div className="w-full max-w-md bg-slate-50 h-[100dvh] sm:h-[840px] sm:max-h-[880px] sm:rounded-[40px] sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] flex flex-col relative overflow-hidden border border-slate-200/50 z-10 overscroll-none">
+      <div className="w-full max-w-md bg-slate-50 min-h-screen sm:h-[840px] sm:max-h-[880px] sm:rounded-[40px] sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.25)] flex flex-col relative sm:overflow-hidden border border-slate-200/50 z-10">
         
         {/* Smartphone Upper Bezel Accent (Only visible on sm+ screen for aesthetics) */}
         <div className="hidden sm:block absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-6 bg-slate-900 rounded-b-3xl z-50">
@@ -676,7 +677,7 @@ export default function Home() {
           <div className="absolute top-1 right-8 w-2 h-2 bg-slate-800 rounded-full" />
         </div>
 
-        {/* Main Header of the App (Persistent and Fixed on all screens) */}
+        {/* Main Header of the App (Persistent and moves with document scroll on mobile to hide Chrome URL bar) */}
         <header className="bg-white/95 backdrop-blur-md border-b border-slate-100 px-4 sm:px-5 pt-3 pb-3 sm:pt-8 sm:pb-3.5 flex items-center justify-between shadow-sm z-40 shrink-0 relative">
           {/* Left side: Hamburger/Back and brand name */}
           <div className="flex items-center gap-2">
@@ -748,7 +749,8 @@ export default function Home() {
                 setCurrentScreen("courses");
                 if (soundEnabled) quizAudio.playClick();
               }}
-              className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-full active:scale-95 transition-all"
+              className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-full active:scale-95 transition-all cursor-pointer"
+              title="খুঁজুন"
             >
               <Search className="w-5 h-5" />
             </button>
@@ -758,7 +760,8 @@ export default function Home() {
                 setCurrentScreen("routine");
                 if (soundEnabled) quizAudio.playClick();
               }}
-              className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-full relative active:scale-95 transition-all"
+              className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-full relative active:scale-95 transition-all cursor-pointer"
+              title="নোটিফিকেশন"
             >
               <Bell className="w-5 h-5" />
               <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full" />
@@ -766,8 +769,8 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Scrollable Main Content Frame */}
-        <div className="flex-1 overflow-y-auto overscroll-y-contain pb-24 md:pb-10 bg-slate-50/60">
+        {/* Main Content Area */}
+        <div className="flex-1 pb-28 md:pb-10 sm:overflow-y-auto bg-slate-50/60">
           
           {/* ========================================================= */}
           {/* 1. SCREEN: HOME                                           */}
