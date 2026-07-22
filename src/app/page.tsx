@@ -1214,34 +1214,11 @@ export default function Home() {
           {/* ========================================================= */}
           {currentScreen === "quiz" && (
             <div className="p-5 space-y-6 animate-fade-in">
-              {/* Back Header */}
-              <div className="flex items-center justify-between">
-                <button 
-                  onClick={() => {
-                    attemptExitQuiz(() => setCurrentScreen("home"));
-                    if (soundEnabled) quizAudio.playClick();
-                  }}
-                  className="flex items-center gap-1 text-xs font-bold text-[#64748B] hover:text-slate-800 bg-white border border-slate-200/50 px-3.5 py-1.5 rounded-full shadow-sm active:scale-95 transition-all cursor-pointer"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" /> Back to Home
-                </button>
-
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => {
-                      setSoundEnabled(!soundEnabled);
-                      if (typeof window !== "undefined") {
-                        localStorage.setItem("job_master_sound", String(!soundEnabled));
-                      }
-                    }}
-                    className="p-1.5 bg-white border border-slate-200/50 rounded-full text-slate-500 shadow-sm active:scale-95 transition-all"
-                  >
-                    {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-                  </button>
-                  <span className="bg-[#FF6A00]/10 text-[#FF6A00] font-extrabold text-[10px] px-3 py-1 rounded-full uppercase">
-                    {activeQuizSubtitle}
-                  </span>
-                </div>
+              {/* Top Subtitle Badge Bar */}
+              <div className="flex items-center justify-end">
+                <span className="bg-[#FF6A00]/10 text-[#FF6A00] font-extrabold text-[10px] px-3 py-1 rounded-full uppercase">
+                  {activeQuizSubtitle}
+                </span>
               </div>
 
               {/* Top Score Circular HUD */}
@@ -1416,6 +1393,39 @@ export default function Home() {
 
                 </div>
               )}
+
+              {/* Bottom Info & Sound Controls Row */}
+              <div className="flex items-center justify-between px-1 pt-1">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse"></span>
+                  <span className="text-xs font-extrabold text-slate-700 tracking-wide">
+                    খেলতে খেলতে শিখুন
+                  </span>
+                </div>
+
+                <button 
+                  onClick={() => {
+                    setSoundEnabled(!soundEnabled);
+                    if (typeof window !== "undefined") {
+                      localStorage.setItem("job_master_sound", String(!soundEnabled));
+                    }
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200/80 rounded-full text-slate-600 shadow-xs hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+                  title={soundEnabled ? "Sound On" : "Sound Off"}
+                >
+                  {soundEnabled ? (
+                    <>
+                      <Volume2 className="w-3.5 h-3.5 text-orange-600" />
+                      <span className="text-xs font-bold text-slate-700">শব্দ চালু</span>
+                    </>
+                  ) : (
+                    <>
+                      <VolumeX className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-xs font-bold text-slate-400">শব্দ বন্ধ</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           )}
 
