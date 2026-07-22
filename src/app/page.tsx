@@ -1399,17 +1399,20 @@ export default function Home() {
                   </div>
 
                   {/* Action row */}
-                  {isSubmitted && (
-                    <div className="pt-2">
-                      <button
-                        onClick={handleNext}
-                        className="w-full py-4 px-6 bg-orange-600 hover:bg-orange-700 text-white font-extrabold rounded-2xl text-xs tracking-wider uppercase shadow-md shadow-orange-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer animate-fade-in"
-                      >
-                        {currentQuestionIndex + 1 >= questions.length ? "ফলাফল দেখুন" : "পরবর্তী প্রশ্ন"}
-                        <ChevronRight className="w-4 h-4 stroke-[3px]" />
-                      </button>
-                    </div>
-                  )}
+                  <div className="pt-2">
+                    <button
+                      onClick={handleNext}
+                      disabled={!isSubmitted}
+                      className={`w-full py-4 px-6 font-extrabold rounded-2xl text-xs tracking-wider uppercase transition-all flex items-center justify-center gap-1.5 ${
+                        isSubmitted
+                          ? "bg-orange-600 hover:bg-orange-700 text-white shadow-md shadow-orange-500/20 active:scale-[0.98] cursor-pointer"
+                          : "bg-slate-200/90 text-slate-400 cursor-not-allowed opacity-70"
+                      }`}
+                    >
+                      {currentQuestionIndex + 1 >= questions.length ? "ফলাফল দেখুন" : "পরবর্তী প্রশ্ন"}
+                      <ChevronRight className="w-4 h-4 stroke-[3px]" />
+                    </button>
+                  </div>
 
                 </div>
               )}
