@@ -559,7 +559,7 @@ export default function Home() {
 
   // Countdown timer logic
   useEffect(() => {
-    if (currentScreen !== "quiz" || !quizStarted || isSubmitted || isTimedOut || isCompleted) return;
+    if (currentScreen !== "quiz" || !quizStarted || isSubmitted || isTimedOut || isCompleted || showQuitConfirmModal) return;
 
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
@@ -573,7 +573,7 @@ export default function Home() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [currentScreen, quizStarted, isSubmitted, isTimedOut, currentQuestionIndex, isCompleted]);
+  }, [currentScreen, quizStarted, isSubmitted, isTimedOut, currentQuestionIndex, isCompleted, showQuitConfirmModal]);
 
   // Handle start quiz action (Sets screen to 'quiz' and resets statistics)
   const startQuizFlow = (title: string, subtitle: string, customQuestionSet?: Question[]) => {
@@ -786,10 +786,20 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <button 
               onClick={() => {
-                if (currentScreen === "quiz" && quizStarted && !isCompleted && !isTimedOut) {
-                  attemptExitQuiz(() => setCurrentScreen(previousScreen || "home"));
+                setDrawerOpen(false);
+                if (currentScreen === "quiz") {
+                  if (quizStarted && !isCompleted && !isTimedOut) {
+                    attemptExitQuiz(() => {
+                      setDrawerOpen(false);
+                      setCurrentScreen("home");
+                    });
+                  } else {
+                    setDrawerOpen(false);
+                    setCurrentScreen("home");
+                  }
                 } else if (currentScreen === "course-detail" || currentScreen === "prep-sub") {
-                  setCurrentScreen(previousScreen || "home");
+                  setDrawerOpen(false);
+                  setCurrentScreen("home");
                 } else {
                   setDrawerOpen(!drawerOpen);
                 }
@@ -1142,58 +1152,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Recent Tests Section */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-extrabold text-base text-[#1E293B] tracking-tight">
-                    Recent Tests
-                  </h3>
-                  {takenTests.length > 0 && (
-                    <button 
-                      onClick={handleClearTestHistory}
-                      className="text-[10px] font-bold text-[#64748B] hover:text-red-500 hover:underline flex items-center gap-1 active:scale-95 transition-all"
-                    >
-                      <Trash2 className="w-3 h-3" /> Clear History
-                    </button>
-                  )}
-                </div>
-
-                {takenTests.length === 0 ? (
-                  <div className="bg-white border border-slate-100 rounded-3xl p-5 text-center text-slate-400 text-xs">
-                    No tests completed yet. Start your first quiz!
-                  </div>
-                ) : (
-                  <div className="space-y-2.5">
-                    {takenTests.map((test) => (
-                      <div 
-                        key={test.id}
-                        className="bg-white border border-slate-100 rounded-3xl p-4 flex items-center justify-between shadow-sm"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-[#FFF1E6] rounded-xl flex items-center justify-center text-orange-600 shrink-0">
-                            <FileText className="w-5 h-5 stroke-[2px]" />
-                          </div>
-                          <div>
-                            <h4 className="text-xs font-extrabold text-[#334155] leading-snug">
-                              {test.name}
-                            </h4>
-                            <p className="text-[10px] font-bold text-[#94A3B8] mt-0.5">
-                              Score: {test.score}/{test.total} • {test.time}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="text-right">
-                          <span className="text-sm font-extrabold text-green-600">
-                            {test.percentage}%
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
               {/* Database / Sync health card */}
               <div className="bg-slate-100/50 rounded-2xl p-4 flex items-center justify-between text-[11px] font-semibold text-slate-500">
                 <span className="flex items-center gap-1.5">
@@ -1229,12 +1187,12 @@ export default function Home() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <div className="relative w-12 h-12 bg-white rounded-full flex items-center justify-center border border-slate-200">
-                    <span className="font-mono font-black text-xs text-slate-800">
+                  <div className="relative px-3.5 py-1.5 bg-orange-50/80 border-2 border-orange-500/30 rounded-full flex items-center justify-center shadow-xs">
+                    <span className="font-mono font-black text-sm text-orange-600 tracking-tight">
                       {score}/{submittedCount === 0 && quizStarted ? 0 : submittedCount}
                     </span>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase hidden xs:block">Score</span>
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase hidden xs:block">Score</span>
                 </div>
               </div>
 
@@ -1420,8 +1378,8 @@ export default function Home() {
                     </>
                   ) : (
                     <>
-                      <VolumeX className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="text-xs font-bold text-slate-400">শব্দ বন্ধ</span>
+                      <VolumeX className="w-3.5 h-3.5 text-red-500" />
+                      <span className="text-xs font-bold text-red-500">শব্দ বন্ধ</span>
                     </>
                   )}
                 </button>
@@ -1963,8 +1921,61 @@ export default function Home() {
           {currentScreen === "tests" && (
             <div className="p-5 space-y-5 animate-fade-in">
               <div className="space-y-1">
-                <h3 className="font-extrabold text-lg text-slate-900 tracking-tight">Test center</h3>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Practice with specific subjects</p>
+                <h3 className="font-extrabold text-lg text-slate-900 tracking-tight">Exam Results & Tests</h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Your last exam performance & mock test bank</p>
+              </div>
+
+              {/* Last Exam Results Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-extrabold text-base text-[#1E293B] tracking-tight flex items-center gap-2">
+                    <ClipboardList className="w-4 h-4 text-orange-500" />
+                    Last Exam Results
+                  </h3>
+                  {takenTests.length > 0 && (
+                    <button 
+                      onClick={handleClearTestHistory}
+                      className="text-[10px] font-bold text-[#64748B] hover:text-red-500 hover:underline flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
+                    >
+                      <Trash2 className="w-3 h-3" /> Clear History
+                    </button>
+                  )}
+                </div>
+
+                {takenTests.length === 0 ? (
+                  <div className="bg-white border border-slate-100 rounded-3xl p-5 text-center text-slate-400 text-xs">
+                    No exam results yet. Complete a quiz to see your score here!
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {takenTests.map((test) => (
+                      <div 
+                        key={test.id}
+                        className="bg-white border border-slate-100 rounded-3xl p-4 flex items-center justify-between shadow-sm"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-[#FFF1E6] rounded-xl flex items-center justify-center text-orange-600 shrink-0">
+                            <FileText className="w-5 h-5 stroke-[2px]" />
+                          </div>
+                          <div>
+                            <h4 className="text-xs font-extrabold text-[#334155] leading-snug">
+                              {test.name}
+                            </h4>
+                            <p className="text-[10px] font-bold text-[#94A3B8] mt-0.5">
+                              Score: {test.score}/{test.total} • {test.time}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="text-right">
+                          <span className="text-sm font-extrabold text-green-600">
+                            {test.percentage}%
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Main test center banner */}
@@ -2872,6 +2883,7 @@ export default function Home() {
                   onClick={() => {
                     setShowQuitConfirmModal(false);
                     setPendingNavigation(null);
+                    setDrawerOpen(false);
                     finishQuizEarly();
                   }}
                   className="flex-1 py-3 px-3 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs rounded-xl transition-all shadow-md shadow-red-500/20 cursor-pointer active:scale-95"
