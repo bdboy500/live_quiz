@@ -661,7 +661,7 @@ export default function AdminPage() {
   // RENDER: DASHBOARD COMPONENT
   // ==========================================
   return (
-    <div className="min-h-screen bg-slate-50/50 flex flex-col font-sans selection:bg-[#FF6A00] selection:text-white">
+    <div className="h-screen h-dvh w-full bg-slate-50/50 flex flex-col font-sans selection:bg-[#FF6A00] selection:text-white overflow-hidden">
       
 
 
@@ -721,10 +721,10 @@ export default function AdminPage() {
       </header>
 
       {/* Main Body with Sidebar & Content */}
-      <div className="flex-1 flex flex-col md:flex-row">
+      <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
         
         {/* Sidebar Left / Tabs Header on Mobile */}
-        <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-slate-100 p-4 shrink-0 flex flex-row md:flex-col justify-between md:justify-start gap-2 overflow-x-auto md:overflow-x-visible">
+        <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-slate-100 p-4 shrink-0 flex flex-row md:flex-col justify-between md:justify-start gap-2 overflow-x-auto md:overflow-y-auto">
           
           <div className="w-full flex flex-row md:flex-col gap-1.5">
             {/* Nav Title Desktop */}
@@ -785,7 +785,7 @@ export default function AdminPage() {
         </aside>
 
         {/* Content Panel Right */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+        <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-6 touch-pan-y">
           
           {/* 1. Summary Cards Row */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -1438,7 +1438,7 @@ export default function AdminPage() {
         {/* 3. EDIT QUESTION MODAL */}
         {editingQuestion && (
           <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-2xl max-w-2xl w-full text-left space-y-4 relative animate-fade-in">
+            <div className="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto text-left space-y-4 relative animate-fade-in">
               <button 
                 onClick={() => setEditingQuestion(null)}
                 className="absolute top-5 right-5 p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200/50 text-slate-500 hover:text-slate-700 rounded-xl transition-all cursor-pointer"

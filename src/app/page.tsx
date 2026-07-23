@@ -39,8 +39,10 @@ import {
   LogOut,
   LogIn,
   Package,
-  Download
+  Download,
+  ShieldCheck
 } from "lucide-react";
+import Link from "next/link";
 import { QUIZ_QUESTIONS, Question, LIVE_QUIZ_ALLOWED_SUBJECTS } from "../data";
 import { getSupabase } from "../lib/supabase";
 import { quizAudio } from "../lib/audio";
@@ -2402,6 +2404,20 @@ export default function Home() {
               <HelpCircle className="w-4 h-4 text-slate-400" />
               <span>Contact Us</span>
             </button>
+
+            {/* 8. Admin Panel Link */}
+            <Link
+              href="/admin"
+              onClick={() => {
+                setDrawerOpen(false);
+                if (soundEnabled) quizAudio.playClick();
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all text-orange-600 hover:bg-orange-50 font-bold text-xs"
+              id="drawer-item-admin"
+            >
+              <ShieldCheck className="w-4 h-4 text-[#FF6A00]" />
+              <span>Admin Panel</span>
+            </Link>
 
             {/* 9. Logout/LogIn */}
             <button
