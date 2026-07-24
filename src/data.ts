@@ -4,6 +4,7 @@ export interface Question {
   options: string[];
   correctIndex: number;
   subject?: string;
+  explanation?: string;
 }
 
 export const LIVE_QUIZ_ALLOWED_SUBJECTS = [

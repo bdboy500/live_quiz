@@ -45,6 +45,7 @@ import {
 import Link from "next/link";
 import { QUIZ_QUESTIONS, Question, LIVE_QUIZ_ALLOWED_SUBJECTS } from "../data";
 import { getSupabase } from "../lib/supabase";
+import { fetchExamPapersFromDb, subscribeToExamPapers, ExamPaper } from "../lib/exams";
 import { quizAudio } from "../lib/audio";
 import { PwaProvider, BottomInstallBanner, InstallPwaPopup } from "../components/InstallPwaPopup";
 
@@ -300,6 +301,25 @@ export default function Home() {
   const [activeQuizTitle, setActiveQuizTitle] = useState<string>("General Quiz Game");
   const [activeQuizSubtitle, setActiveQuizSubtitle] = useState<string>("45th BCS International Affairs");
 
+  // Dynamic Exam Papers State
+  const [examPapers, setExamPapers] = useState<ExamPaper[]>([]);
+  
+  // View Question Paper Modal ("প্রশ্নপত্র") State
+  const [viewingPaperModal, setViewingPaperModal] = useState<ExamPaper | null>(null);
+  const [paperFilterSubject, setPaperFilterSubject] = useState<string>("All");
+  const [revealedAnswers, setRevealedAnswers] = useState<Record<number, boolean>>({});
+  const [revealedExplanations, setRevealedExplanations] = useState<Record<number, boolean>>({});
+  const [bookmarkedQuestions, setBookmarkedQuestions] = useState<Record<number, boolean>>({});
+
+  // Take Exam Modal ("পরীক্ষা দিন") State
+  const [takingExamModal, setTakingExamModal] = useState<ExamPaper | null>(null);
+  const [examUserAnswers, setExamUserAnswers] = useState<Record<number, number>>({});
+  const [examTimer, setExamTimer] = useState<number>(0);
+  const [examSubmitted, setExamSubmitted] = useState<boolean>(false);
+  const [examResultSummary, setExamResultSummary] = useState<any | null>(null);
+  const [showExamNoticeAlert, setShowExamNoticeAlert] = useState<boolean>(true);
+  const [examQuestionsDrawerOpen, setExamQuestionsDrawerOpen] = useState<boolean>(false);
+
   // Game/Quiz States
   const [quizStarted, setQuizStarted] = useState<boolean>(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
@@ -408,8 +428,41 @@ export default function Home() {
       if (savedSound !== null) {
         setSoundEnabled(savedSound === "true");
       }
+
+      // Fetch dynamic published exam papers & subscribe to real-time changes
+      fetchExamPapersFromDb().then(papers => {
+        setExamPapers(papers);
+      });
+
+      const unsubscribe = subscribeToExamPapers((updatedPapers) => {
+        setExamPapers(updatedPapers);
+      });
+
+      return () => {
+        if (unsubscribe) unsubscribe();
+      };
     }
   }, []);
+
+  // Timer effect for Taking Exam Modal
+  useEffect(() => {
+    let timerId: any = null;
+    if (takingExamModal && !examSubmitted && examTimer > 0) {
+      timerId = setInterval(() => {
+        setExamTimer(prev => {
+          if (prev <= 1) {
+            clearInterval(timerId);
+            handleFinishExam();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timerId) clearInterval(timerId);
+    };
+  }, [takingExamModal, examSubmitted, examTimer]);
 
   // Save routine tasks
   const saveRoutine = (updated: RoutineItem[]) => {
@@ -424,6 +477,86 @@ export default function Home() {
     setTakenTests(updated);
     if (typeof window !== "undefined") {
       localStorage.setItem("job_master_tests_history", JSON.stringify(updated));
+    }
+  };
+
+  // Exam Paper Handlers
+  const handleOpenTakeExam = (paper: ExamPaper) => {
+    setTakingExamModal(paper);
+    setExamUserAnswers({});
+    setExamSubmitted(false);
+    setExamResultSummary(null);
+    setExamTimer(paper.totalDurationSeconds || (paper.questions?.length || 10) * 36);
+    setShowExamNoticeAlert(true);
+    setExamQuestionsDrawerOpen(false);
+    if (soundEnabled) quizAudio.playClick();
+  };
+
+  const handleOpenViewPaper = (paper: ExamPaper) => {
+    setViewingPaperModal(paper);
+    setPaperFilterSubject("All");
+    setRevealedAnswers({});
+    setRevealedExplanations({});
+    if (soundEnabled) quizAudio.playClick();
+  };
+
+  const handleOptionSelectExam = (qIndex: number, optionIdx: number) => {
+    if (examSubmitted) return;
+    setExamUserAnswers(prev => ({ ...prev, [qIndex]: optionIdx }));
+    if (soundEnabled) quizAudio.playClick();
+  };
+
+  const handleFinishExam = () => {
+    if (!takingExamModal || examSubmitted) return;
+
+    const paper = takingExamModal;
+    const questionsList = paper.questions || [];
+    const totalQuestions = questionsList.length;
+
+    let correctCount = 0;
+    let wrongCount = 0;
+    let answeredCount = 0;
+
+    questionsList.forEach((q, idx) => {
+      if (examUserAnswers[idx] !== undefined) {
+        answeredCount++;
+        if (examUserAnswers[idx] === q.correctIndex) {
+          correctCount++;
+        } else {
+          wrongCount++;
+        }
+      }
+    });
+
+    const penalty = wrongCount * 0.50; // -0.50 per wrong answer
+    const netMarks = Math.max(0, correctCount - penalty);
+    const percentage = totalQuestions > 0 ? Math.round((netMarks / totalQuestions) * 100) : 0;
+
+    setExamSubmitted(true);
+    setExamResultSummary({
+      totalQuestions,
+      answeredCount,
+      correctCount,
+      wrongCount,
+      penalty: penalty.toFixed(2),
+      netMarks: netMarks.toFixed(2),
+      percentage
+    });
+
+    // Save to test history log
+    const newLog: TakenTest = {
+      id: "exam_" + Date.now(),
+      name: paper.title,
+      score: Math.round(netMarks),
+      total: totalQuestions,
+      time: "Just now",
+      percentage
+    };
+    saveTakenTests([newLog, ...takenTests]);
+
+    if (soundEnabled) {
+      if (percentage >= 50) quizAudio.playSuccess();
+      else quizAudio.playError();
     }
   };
 
@@ -1649,7 +1782,7 @@ export default function Home() {
           {/* COURSE DETAIL SCREEN                                      */}
           {/* ========================================================= */}
           {currentScreen === "course-detail" && selectedCourseDetail && (
-            <div className="p-5 space-y-5 animate-fade-in pb-10">
+            <div className="p-4 sm:p-5 space-y-4 animate-fade-in pb-10 text-left">
               
               {/* Back Button & Title */}
               <div className="flex items-center gap-3">
@@ -1658,7 +1791,7 @@ export default function Home() {
                     setCurrentScreen(previousScreen);
                     if (soundEnabled) quizAudio.playClick();
                   }}
-                  className="p-2 bg-white hover:bg-slate-100 rounded-xl text-slate-700 shadow-sm transition-all active:scale-90"
+                  className="p-2 bg-white hover:bg-slate-100 rounded-xl text-slate-700 shadow-sm transition-all active:scale-90 cursor-pointer"
                 >
                   <ArrowLeft className="w-5 h-5 stroke-[2.5px]" />
                 </button>
@@ -1667,123 +1800,127 @@ export default function Home() {
                     {selectedCourseDetail.category} Course
                   </span>
                   <h3 className="font-extrabold text-sm text-slate-900 tracking-tight leading-none mt-1">
-                    কোর্সের বিষয়বস্তু
+                    {selectedCourseDetail.title}
                   </h3>
                 </div>
               </div>
 
-              {/* Grid Section of Tests */}
-              <div className="space-y-3">
+              {/* Alert Notification Banner */}
+              <div className="bg-amber-50 border border-amber-200/80 text-amber-900 rounded-2xl p-3 text-xs font-bold flex items-center justify-between gap-2 shadow-2xs">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>আপনি আজকের পরীক্ষায় অংশগ্রহণ করেছেন। ফলাফল প্রকাশ: আগামীকাল সকাল ১১টার মধ্যে</span>
+                </div>
+              </div>
+
+              {/* Active / Dynamic Exam Cards for this course */}
+              {(() => {
+                const coursePapers = examPapers.filter(p => p.course === selectedCourseDetail.id || p.course === "all_job");
+                const papersToDisplay = coursePapers.length > 0 ? coursePapers : examPapers;
+
+                if (papersToDisplay.length === 0) {
+                  return (
+                    <div className="bg-white border border-slate-100 rounded-[2rem] p-6 text-center space-y-2">
+                      <HelpCircle className="w-8 h-8 text-slate-300 mx-auto" />
+                      <p className="text-xs font-bold text-slate-400">এই কোর্সের জন্য এখনো কোনো লাইভ প্রশ্ন পত্র পাওয়া যায়নি।</p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-4">
+                    {papersToDisplay.map((paper) => {
+                      const totalSec = paper.totalDurationSeconds || (paper.questions?.length || 10) * 36;
+                      const durationMins = Math.floor(totalSec / 60);
+
+                      return (
+                        <div key={paper.id} className="bg-white border border-slate-100 hover:border-orange-200 rounded-[2rem] p-5 shadow-sm space-y-3.5 transition-all">
+                          {/* Header Date & Badge */}
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-extrabold text-slate-500">
+                              📅 {paper.examDate || "Fri, Jul 31, 2026"}
+                            </span>
+                            <span className="bg-emerald-50 text-emerald-600 font-black text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-emerald-100">
+                              ● {paper.status || "Live"}
+                            </span>
+                          </div>
+
+                          {/* Marks & Duration */}
+                          <div className="text-xs font-bold text-slate-500 flex items-center gap-2">
+                            <span>Total marks: {paper.totalMarks || paper.questions?.length || 10}</span>
+                            <span>•</span>
+                            <span>Duration: {durationMins} mins (৩৬ সে/প্রশ্ন)</span>
+                          </div>
+
+                          {/* Title & Topic */}
+                          <div className="space-y-1">
+                            {paper.topic && (
+                              <div className="text-xs font-extrabold text-[#FF6A00]">
+                                Topic: <span className="text-slate-800 font-bold">"{paper.topic}"</span>
+                              </div>
+                            )}
+                            <h4 className="text-sm font-black text-slate-800 leading-snug">
+                              {paper.title}
+                            </h4>
+                          </div>
+
+                          {/* Action Buttons: Take Exam & Question Paper */}
+                          <div className="grid grid-cols-2 gap-3 pt-1">
+                            <button
+                              onClick={() => handleOpenTakeExam(paper)}
+                              className="bg-purple-600 hover:bg-purple-700 text-white font-black text-xs py-3 rounded-2xl active:scale-95 transition-all shadow-md shadow-purple-500/10 cursor-pointer flex items-center justify-center gap-1.5"
+                            >
+                              <span>📝 পরীক্ষা দিন</span>
+                            </button>
+
+                            <button
+                              onClick={() => handleOpenViewPaper(paper)}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-3 rounded-2xl active:scale-95 transition-all shadow-md shadow-emerald-500/10 cursor-pointer flex items-center justify-center gap-1.5"
+                            >
+                              <span>📄 প্রশ্নপত্র</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+
+              {/* 8 Feature Grid Nav Buttons (Matching Image 2) */}
+              <div className="space-y-2 pt-2">
                 <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider pl-1">
-                  মডেল টেস্ট সমূহ (Select Exam)
+                  কোর্স টুলস ও আর্কাইভ (Quick Tools)
                 </h4>
 
-                <div className="grid grid-cols-1 gap-3">
-                  
-                  {/* Test 1: Weekly Model Test */}
-                  <div 
-                    onClick={() => {
-                      let qList = QUIZ_QUESTIONS;
-                      if (selectedCourseDetail.id === "bcs") {
-                        qList = [...BANGLA_QUESTIONS, ...ENGLISH_QUESTIONS, ...MATH_QUESTIONS, ...SCIENCE_QUESTIONS];
-                      } else if (selectedCourseDetail.id === "bank") {
-                        qList = [...MATH_QUESTIONS, ...ENGLISH_QUESTIONS];
-                      } else if (selectedCourseDetail.id === "primary") {
-                        qList = [...BANGLA_QUESTIONS, ...MATH_QUESTIONS];
-                      } else if (selectedCourseDetail.id === "ntrca") {
-                        qList = [...BANGLA_QUESTIONS, ...ENGLISH_QUESTIONS];
-                      } else if (selectedCourseDetail.id === "psc") {
-                        qList = QUIZ_QUESTIONS;
-                      } else if (selectedCourseDetail.id === "bangla_english") {
-                        qList = [...BANGLA_QUESTIONS, ...ENGLISH_QUESTIONS];
-                      } else if (selectedCourseDetail.id === "math_science") {
-                        qList = [...MATH_QUESTIONS, ...SCIENCE_QUESTIONS];
-                      } else {
-                        qList = [...BANGLA_QUESTIONS, ...ENGLISH_QUESTIONS, ...MATH_QUESTIONS, ...SCIENCE_QUESTIONS];
-                      }
-                      startQuizFlow(`${selectedCourseDetail.title} - Weekly Model Test`, "সাপ্তাহিক স্পেশাল মডেল টেস্ট", qList);
-                      if (soundEnabled) quizAudio.playClick();
-                    }}
-                    className="bg-white border border-slate-100 hover:border-[#FF6A00]/40 rounded-[2rem] p-4.5 flex items-center justify-between shadow-sm cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-11 h-11 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">
-                        <ClipboardList className="w-5 h-5 stroke-[2.2px]" />
-                      </div>
-                      <div className="text-left space-y-0.5">
-                        <h5 className="text-xs font-black text-slate-800 leading-snug">Weekly Model Test</h5>
-                        <p className="text-[10px] font-bold text-slate-400">সাপ্তাহিক স্পেশাল সিলেবাস মক</p>
-                      </div>
-                    </div>
-                    <div className="bg-slate-50 p-2 rounded-xl text-slate-400">
-                      <Play className="w-3.5 h-3.5 fill-current text-indigo-500" />
-                    </div>
-                  </div>
-
-                  {/* Test 2: Daily Model Test */}
-                  <div 
-                    onClick={() => {
-                      let qList = QUIZ_QUESTIONS;
-                      if (selectedCourseDetail.id === "bcs") {
-                        qList = QUIZ_QUESTIONS;
-                      } else if (selectedCourseDetail.id === "bank") {
-                        qList = MATH_QUESTIONS;
-                      } else if (selectedCourseDetail.id === "primary") {
-                        qList = SCIENCE_QUESTIONS;
-                      } else if (selectedCourseDetail.id === "ntrca") {
-                        qList = [...MATH_QUESTIONS, ...SCIENCE_QUESTIONS];
-                      } else if (selectedCourseDetail.id === "psc") {
-                        qList = BANGLA_QUESTIONS;
-                      } else if (selectedCourseDetail.id === "bangla_english") {
-                        qList = BANGLA_QUESTIONS;
-                      } else if (selectedCourseDetail.id === "math_science") {
-                        qList = MATH_QUESTIONS;
-                      } else {
-                        qList = QUIZ_QUESTIONS;
-                      }
-                      startQuizFlow(`${selectedCourseDetail.title} - Daily Model Test`, "দৈনিক স্পেশাল কুইজ ও সমাধান", qList);
-                      if (soundEnabled) quizAudio.playClick();
-                    }}
-                    className="bg-white border border-slate-100 hover:border-[#FF6A00]/40 rounded-[2rem] p-4.5 flex items-center justify-between shadow-sm cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-11 h-11 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center shrink-0">
-                        <Clock className="w-5 h-5 stroke-[2.2px]" />
-                      </div>
-                      <div className="text-left space-y-0.5">
-                        <h5 className="text-xs font-black text-slate-800 leading-snug">Daily Model Test</h5>
-                        <p className="text-[10px] font-bold text-slate-400">দৈনিক প্রস্তুতিমূলক স্পিড কুইজ</p>
-                      </div>
-                    </div>
-                    <div className="bg-slate-50 p-2 rounded-xl text-slate-400">
-                      <Play className="w-3.5 h-3.5 fill-current text-rose-500" />
-                    </div>
-                  </div>
-
-                  {/* Special Option: BCS Health Course (Only for BCS) */}
-                  {selectedCourseDetail.id === "bcs" && (
-                    <div 
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { name: "Routine", icon: "📅", color: "bg-blue-50 text-blue-600" },
+                    { name: "Result", icon: "🏆", color: "bg-amber-50 text-amber-600" },
+                    { name: "Archive", icon: "📂", color: "bg-purple-50 text-purple-600" },
+                    { name: "Favorite", icon: "🩶", color: "bg-rose-50 text-rose-600" },
+                    { name: "Syllabus", icon: "📜", color: "bg-green-50 text-green-600" },
+                    { name: "Merit List", icon: "🎖️", color: "bg-indigo-50 text-indigo-600" },
+                    { name: "Wrong & Unans", icon: "✕", color: "bg-red-50 text-red-600" },
+                    { name: "PDFs", icon: "📄", color: "bg-[#FFF1E6] text-[#FF6A00]" },
+                  ].map((item, idx) => (
+                    <button
+                      key={idx}
                       onClick={() => {
-                        startQuizFlow("BCS Health Course", "স্বাস্থ্য ক্যাডার ও চিকিৎসা বিজ্ঞান স্পেশাল মক", SCIENCE_QUESTIONS);
+                        if (item.name === "Routine") setCurrentScreen("routine");
+                        else if (item.name === "Result") setCurrentScreen("tests");
                         if (soundEnabled) quizAudio.playClick();
                       }}
-                      className="bg-gradient-to-r from-teal-500 to-emerald-500 border-0 rounded-[2rem] p-5 flex items-center justify-between text-white shadow-md shadow-emerald-500/10 hover:shadow-lg cursor-pointer transition-all active:scale-[0.98]"
+                      className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1.5 text-center hover:border-orange-200 transition-all active:scale-95 cursor-pointer shadow-2xs"
                     >
-                      <div className="flex items-center gap-3.5">
-                        <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center shrink-0 text-white">
-                          <Award className="w-5 h-5 stroke-[2.2px]" />
-                        </div>
-                        <div className="text-left space-y-0.5">
-                          <h5 className="text-xs font-black leading-snug">BCS Health Course</h5>
-                          <p className="text-[10px] font-bold text-teal-100">স্বাস্থ্য ক্যাডার ও চিকিৎসা বিজ্ঞান স্পেশাল মক</p>
-                        </div>
-                      </div>
-                      <div className="bg-white/20 p-2 rounded-xl text-white">
-                        <ChevronRight className="w-4 h-4 stroke-[3px]" />
-                      </div>
-                    </div>
-                  )}
-
+                      <span className={`w-8 h-8 rounded-xl ${item.color} flex items-center justify-center text-sm font-black`}>
+                        {item.icon}
+                      </span>
+                      <span className="text-[10px] font-extrabold text-slate-700 truncate w-full">
+                        {item.name}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -2884,6 +3021,353 @@ export default function Home() {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* VIEW QUESTION PAPER MODAL ("প্রশ্নপত্র")                      */}
+        {/* ========================================================= */}
+        {viewingPaperModal && (
+          <div className="fixed inset-0 z-[110] bg-slate-50 overflow-y-auto animate-fade-in text-left">
+            {/* Top Header */}
+            <header className="sticky top-0 z-20 bg-white border-b border-slate-200/80 px-4 py-3 flex items-center justify-between shadow-2xs">
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setViewingPaperModal(null)}
+                  className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all cursor-pointer"
+                  title="ফিরে যান"
+                >
+                  <ArrowLeft className="w-5 h-5 stroke-[2.5px]" />
+                </button>
+                <div className="flex items-center gap-2">
+                  <span className="w-7 h-7 bg-[#FF6A00] text-white font-black text-xs rounded-lg flex items-center justify-center">
+                    LM
+                  </span>
+                  <h2 className="font-extrabold text-sm sm:text-base text-slate-800 tracking-tight">
+                    Live <span className="text-[#FF6A00]">MCQ</span> • প্রশ্নপত্র
+                  </h2>
+                </div>
+              </div>
+
+              {/* Subject filter dropdown */}
+              <div className="flex items-center gap-2">
+                <select
+                  value={paperFilterSubject}
+                  onChange={(e) => setPaperFilterSubject(e.target.value)}
+                  className="bg-slate-100 border border-slate-200 text-slate-800 text-xs font-extrabold rounded-xl px-3 py-2 focus:outline-none focus:border-[#FF6A00] cursor-pointer"
+                >
+                  <option value="All">সকল বিষয়</option>
+                  {Array.from(new Set(viewingPaperModal.questions.map(q => q.subject).filter(Boolean))).map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+            </header>
+
+            {/* Paper Content */}
+            <main className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6 pb-20">
+              {/* Title Banner */}
+              <div className="bg-white border border-slate-200/80 rounded-[2rem] p-5 shadow-2xs space-y-2">
+                <span className="text-[10px] font-black uppercase text-[#FF6A00] bg-orange-50 px-2.5 py-1 rounded-full">
+                  {viewingPaperModal.course.toUpperCase()} • {viewingPaperModal.examType}
+                </span>
+                <h1 className="text-base sm:text-lg font-black text-slate-900 leading-snug">
+                  {viewingPaperModal.title}
+                </h1>
+                <p className="text-xs font-extrabold text-slate-500">
+                  মোট প্রশ্ন: {viewingPaperModal.questions.length} টি | সময়: {Math.floor((viewingPaperModal.totalDurationSeconds || viewingPaperModal.questions.length * 36) / 60)} মিনিট
+                </p>
+              </div>
+
+              {/* Questions List */}
+              <div className="space-y-4">
+                {viewingPaperModal.questions
+                  .filter(q => paperFilterSubject === "All" || q.subject === paperFilterSubject)
+                  .map((q, idx) => {
+                    const isAnswerRevealed = revealedAnswers[idx];
+                    const isExpRevealed = revealedExplanations[idx];
+                    const isFav = bookmarkedQuestions[idx];
+
+                    return (
+                      <div key={idx} className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3.5">
+                        {/* Question header */}
+                        <div className="flex items-start justify-between gap-3">
+                          <h3 className="text-xs sm:text-sm font-black text-slate-800 leading-relaxed">
+                            <span className="text-[#FF6A00] mr-1.5">{idx + 1})</span>
+                            {q.question}
+                          </h3>
+                          {q.subject && (
+                            <span className="text-[9px] font-extrabold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md shrink-0">
+                              {q.subject}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Options Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {q.options.map((opt, optIdx) => {
+                            const optionLetters = ["ক", "খ", "গ", "ঘ"];
+                            const isCorrect = optIdx === q.correctIndex;
+                            const showAsCorrect = isAnswerRevealed && isCorrect;
+
+                            return (
+                              <div 
+                                key={optIdx}
+                                className={`p-2.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-2.5 ${
+                                  showAsCorrect 
+                                    ? "bg-emerald-50 border-emerald-300 text-emerald-900 font-extrabold" 
+                                    : "bg-slate-50 border-slate-200/80 text-slate-700"
+                                }`}
+                              >
+                                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
+                                  showAsCorrect ? "bg-emerald-600 text-white" : "bg-white border border-slate-300 text-slate-600"
+                                }`}>
+                                  {optionLetters[optIdx] || optIdx + 1}
+                                </span>
+                                <span className="leading-tight">{opt}</span>
+                                {showAsCorrect && <Check className="w-4 h-4 text-emerald-600 ml-auto shrink-0" />}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Bottom Control Bar for each question */}
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setRevealedAnswers(prev => ({ ...prev, [idx]: !prev[idx] }))}
+                              className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all cursor-pointer ${
+                                isAnswerRevealed 
+                                  ? "bg-emerald-100 text-emerald-700" 
+                                  : "bg-purple-50 text-purple-700 hover:bg-purple-100"
+                              }`}
+                            >
+                              {isAnswerRevealed ? "উত্তর লুকান" : "উত্তর"}
+                            </button>
+
+                            <button
+                              onClick={() => setRevealedExplanations(prev => ({ ...prev, [idx]: !prev[idx] }))}
+                              className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all cursor-pointer ${
+                                isExpRevealed 
+                                  ? "bg-blue-100 text-blue-700" 
+                                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                              }`}
+                            >
+                              {isExpRevealed ? "ব্যাখ্যা লুকান" : "ব্যাখ্যা"}
+                            </button>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-slate-400">
+                            <button
+                              onClick={() => {
+                                setBookmarkedQuestions(prev => ({ ...prev, [idx]: !prev[idx] }));
+                                if (soundEnabled) quizAudio.playClick();
+                              }}
+                              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                                isFav ? "text-rose-500 bg-rose-50" : "hover:text-slate-600"
+                              }`}
+                            >
+                              <Bookmark className="w-4 h-4 fill-current" />
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                if ('speechSynthesis' in window) {
+                                  const utterance = new SpeechSynthesisUtterance(q.question);
+                                  utterance.lang = 'bn-BD';
+                                  window.speechSynthesis.speak(utterance);
+                                }
+                              }}
+                              className="p-1.5 rounded-lg hover:text-slate-600 transition-all cursor-pointer"
+                              title="শুনুন"
+                            >
+                              <Volume2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Explanation Box */}
+                        {isExpRevealed && (
+                          <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl text-xs text-emerald-950 font-semibold space-y-1 animate-fade-in">
+                            <div className="font-extrabold text-emerald-700">📌 ব্যাখ্যা ও রেফারেন্স:</div>
+                            <p>{q.explanation || `সঠিক উত্তর: ${q.options[q.correctIndex]}। এই বিষয়ের আরও বিস্তারিত তথ্য আমাদের প্রশ্ন ব্যাংকে দেওয়া আছে।`}</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+            </main>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAKE EXAM MODAL ("পরীক্ষা দিন")                            */}
+        {/* ========================================================= */}
+        {takingExamModal && (
+          <div className="fixed inset-0 z-[110] bg-slate-50 overflow-y-auto animate-fade-in text-left">
+            {/* Sticky Top Bar (Matching Image 3) */}
+            <header className="sticky top-0 z-30 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-xs">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setExamQuestionsDrawerOpen(!examQuestionsDrawerOpen)}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-black text-xs rounded-xl flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Menu className="w-4 h-4" />
+                  <span className="hidden sm:inline">All Questions</span>
+                </button>
+
+                <button 
+                  onClick={() => {
+                    if (confirm("আপনি কি নিশ্চিত যে পরীক্ষাটি বাতিল করতে চান?")) {
+                      setTakingExamModal(null);
+                    }
+                  }}
+                  className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Timer Countdown Display */}
+              <div className="flex items-center gap-2 bg-orange-50 border border-orange-200/80 px-3 py-1.5 rounded-xl">
+                <Timer className="w-4 h-4 text-[#FF6A00] animate-pulse" />
+                <span className="font-black text-xs sm:text-sm text-slate-800 tracking-wider">
+                  {Math.floor(examTimer / 60).toString().padStart(2, '0')}:{(examTimer % 60).toString().padStart(2, '0')}
+                </span>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                onClick={handleFinishExam}
+                className="bg-[#FF6A00] hover:bg-orange-600 text-white font-black text-xs px-4 py-2 rounded-xl transition-all shadow-md shadow-orange-500/20 cursor-pointer active:scale-95"
+              >
+                Submit
+              </button>
+            </header>
+
+            {/* Yellow Alert Notice (Image 3) */}
+            {showExamNoticeAlert && (
+              <div className="bg-amber-100 border-b border-amber-200 text-amber-900 px-4 py-2 text-xs font-bold flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-amber-700 shrink-0" />
+                  <span>🔔 প্রতি প্রশ্নের মান ১ ও ভুল উত্তরের জন্য ০.৫০ কাটা যাবে।</span>
+                </div>
+                <button onClick={() => setShowExamNoticeAlert(false)} className="text-amber-800 hover:text-amber-950 cursor-pointer">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Questions List */}
+            <main className="max-w-3xl mx-auto p-4 sm:p-6 space-y-4 pb-28">
+              {takingExamModal.questions.map((q, qIdx) => {
+                const optionLetters = ["ক", "খ", "গ", "ঘ"];
+                const selectedOpt = examUserAnswers[qIdx];
+
+                return (
+                  <div key={qIdx} className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="text-xs sm:text-sm font-black text-slate-800 leading-relaxed">
+                        <span className="text-[#FF6A00] mr-1.5">{qIdx + 1}.</span>
+                        {q.question}
+                      </h3>
+                    </div>
+
+                    {/* Choices */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {q.options.map((opt, oIdx) => {
+                        const isChoiceSelected = selectedOpt === oIdx;
+
+                        return (
+                          <div
+                            key={oIdx}
+                            onClick={() => handleOptionSelectExam(qIdx, oIdx)}
+                            className={`p-3 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center gap-2.5 ${
+                              isChoiceSelected
+                                ? "bg-sky-100 border-2 border-sky-400 text-sky-950 font-black shadow-2xs"
+                                : "bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100"
+                            }`}
+                          >
+                            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
+                              isChoiceSelected ? "bg-sky-500 text-white" : "bg-white border border-slate-300 text-slate-600"
+                            }`}>
+                              {optionLetters[oIdx] || oIdx + 1}
+                            </span>
+                            <span className="leading-tight">{opt}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </main>
+
+            {/* Bottom Floating Bar */}
+            <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-200 p-3 flex items-center justify-between px-6 shadow-lg">
+              <span className="text-xs font-black text-slate-600">
+                Answered: <strong className="text-[#FF6A00]">{Object.keys(examUserAnswers).length}</strong> / {takingExamModal.questions.length}
+              </span>
+
+              <button
+                onClick={handleFinishExam}
+                className="bg-[#FF6A00] hover:bg-orange-600 text-white font-black text-xs px-6 py-2.5 rounded-xl transition-all active:scale-95 shadow-md shadow-orange-500/20 cursor-pointer"
+              >
+                পরীক্ষা জমা দিন (Submit Exam)
+              </button>
+            </div>
+
+            {/* Result Summary Modal */}
+            {examSubmitted && examResultSummary && (
+              <div className="fixed inset-0 z-[120] bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
+                <div className="bg-white rounded-[2rem] p-6 max-w-sm w-full text-center shadow-2xl space-y-4 border border-slate-100">
+                  <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto">
+                    <Award className="w-7 h-7 stroke-[2.5px]" />
+                  </div>
+
+                  <div className="space-y-1">
+                    <h3 className="font-extrabold text-base text-slate-800">
+                      পরীক্ষা সফলভাবে সম্পন্ন হয়েছে!
+                    </h3>
+                    <p className="text-xs font-bold text-slate-400">
+                      {takingExamModal.title}
+                    </p>
+                  </div>
+
+                  {/* Results Grid */}
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 grid grid-cols-2 gap-2 text-xs font-bold text-slate-700">
+                    <div>মোট প্রশ্ন: <strong className="text-slate-900">{examResultSummary.totalQuestions}</strong></div>
+                    <div>উত্তর প্রদান: <strong className="text-purple-600">{examResultSummary.answeredCount}</strong></div>
+                    <div>সঠিক: <strong className="text-emerald-600">{examResultSummary.correctCount}</strong></div>
+                    <div>ভুল: <strong className="text-rose-600">{examResultSummary.wrongCount}</strong></div>
+                    <div className="col-span-2 pt-2 border-t border-slate-200 flex justify-between text-sm">
+                      <span>প্রাপ্ত নম্বর:</span>
+                      <span className="font-black text-[#FF6A00]">{examResultSummary.netMarks}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        const paper = takingExamModal;
+                        setTakingExamModal(null);
+                        handleOpenViewPaper(paper);
+                      }}
+                      className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-md shadow-emerald-500/20"
+                    >
+                      📄 উত্তরপত্র দেখুন
+                    </button>
+                    <button
+                      onClick={() => setTakingExamModal(null)}
+                      className="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs rounded-xl transition-all cursor-pointer"
+                    >
+                      বন্ধ করুন
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
