@@ -34,6 +34,41 @@ import { getSupabase } from "../../lib/supabase";
 import { ExamPaper, fetchExamPapersFromDb, saveExamPaperToDb, deleteExamPaperFromDb } from "../../lib/exams";
 
 // Interfaces for local state types
+function normalizeQuestion(q: any): Question {
+  if (!q) {
+    return {
+      id: 0,
+      question: "",
+      questionText: "",
+      subject: "General",
+      subjectName: "General",
+      options: ["", "", "", ""],
+      correctIndex: 0,
+      correctOptionIndex: 0,
+      explanation: ""
+    };
+  }
+  const qText = String(q.question || q.questionText || q.question_text || q.title || "").trim();
+  const subName = String(q.subject || q.subjectName || q.subject_name || "General").trim();
+  const cIdx = q.correctIndex !== undefined && q.correctIndex !== null 
+    ? Number(q.correctIndex) 
+    : (q.correctOptionIndex !== undefined && q.correctOptionIndex !== null ? Number(q.correctOptionIndex) : 0);
+  const opts = Array.isArray(q.options) ? q.options.map((o: any) => String(o || "")) : ["", "", "", ""];
+  
+  return {
+    ...q,
+    id: q.id || `q_${Math.random()}`,
+    question: qText,
+    questionText: qText,
+    subject: subName,
+    subjectName: subName,
+    correctIndex: isNaN(cIdx) ? 0 : cIdx,
+    correctOptionIndex: isNaN(cIdx) ? 0 : cIdx,
+    options: opts,
+    explanation: String(q.explanation || "").trim()
+  };
+}
+
 interface AdminUser {
   id: string;
   email: string;
@@ -213,12 +248,13 @@ export default function AdminPage() {
   };
 
   // Exam Paper Builder handlers
-  const handleAddQuestionToPaper = (q: Question) => {
-    if (paperQuestions.some(item => item.id === q.id || item.question === q.question)) {
+  const handleAddQuestionToPaper = (q: any) => {
+    const normQ = normalizeQuestion(q);
+    if (paperQuestions.some(item => item.id === normQ.id || (item.question || item.questionText) === normQ.question)) {
       triggerNotification("error", "এই প্রশ্নটি ইতিমধ্যেই সিলেক্ট করা হয়েছে।");
       return;
     }
-    setPaperQuestions(prev => [...prev, q]);
+    setPaperQuestions(prev => [...prev, normQ]);
     triggerNotification("success", "প্রশ্নটি প্রশ্নপত্রে যোগ করা হয়েছে।");
   };
 
@@ -228,9 +264,10 @@ export default function AdminPage() {
 
   const handleAutoFillQuestions = () => {
     // Filter questions by subject if selected
-    let available = questions.length > 0 ? questions : QUIZ_QUESTIONS;
+    const availablePool = (questions.length > 0 ? questions : QUIZ_QUESTIONS).map(q => normalizeQuestion(q));
+    let available = availablePool;
     if (paperSearchSubject !== "All") {
-      available = available.filter(q => q.subject === paperSearchSubject);
+      available = available.filter(q => (q.subject || q.subjectName) === paperSearchSubject);
     }
     
     // Pick required number
@@ -240,7 +277,7 @@ export default function AdminPage() {
       return;
     }
 
-    const unselected = available.filter(q => !paperQuestions.some(pq => pq.id === q.id || pq.question === q.question));
+    const unselected = available.filter(q => !paperQuestions.some(pq => pq.id === q.id || (pq.question || pq.questionText) === q.question));
     const shuffled = [...unselected].sort(() => 0.5 - Math.random());
     const toAdd = shuffled.slice(0, needed);
 
@@ -266,7 +303,8 @@ export default function AdminPage() {
       return;
     }
 
-    const totalSeconds = paperQuestions.length * 36; // 36 seconds per question
+    const normalizedPaperQuestions = paperQuestions.map(q => normalizeQuestion(q));
+    const totalSeconds = normalizedPaperQuestions.length * 36; // 36 seconds per question
 
     const newPaper: ExamPaper = {
       id: editingPaperId || `exam-${Date.now()}`,
@@ -274,14 +312,14 @@ export default function AdminPage() {
       course: paperCourse,
       examType: paperExamType,
       subject: paperSubject,
-      questionCount: paperQuestions.length,
+      questionCount: normalizedPaperQuestions.length,
       timePerQuestionSeconds: 36,
       totalDurationSeconds: totalSeconds,
-      totalMarks: paperQuestions.length,
+      totalMarks: normalizedPaperQuestions.length,
       topic: paperTopic.trim() || "মডেল টেস্ট",
       examDate: paperDate.trim() || "Fri, Jul 31, 2026",
       status: paperStatus,
-      questions: paperQuestions,
+      questions: normalizedPaperQuestions,
       createdAt: new Date().toISOString()
     };
 
@@ -357,9 +395,13 @@ export default function AdminPage() {
         // Initialize with original mock questions
         const cachedMock = localStorage.getItem("job_master_admin_questions");
         if (cachedMock) {
-          setQuestions(JSON.parse(cachedMock));
+          try {
+            setQuestions(JSON.parse(cachedMock).map((item: any) => normalizeQuestion(item)));
+          } catch {
+            setQuestions(QUIZ_QUESTIONS.map(item => normalizeQuestion(item)));
+          }
         } else {
-          setQuestions(QUIZ_QUESTIONS);
+          setQuestions(QUIZ_QUESTIONS.map(item => normalizeQuestion(item)));
         }
       } else if (data) {
         // Robust in-memory sorting so we don't depend on database column named createdAt
@@ -372,8 +414,9 @@ export default function AdminPage() {
           return String(bTime).localeCompare(String(aTime));
         });
         
-        setQuestions(sortedData);
-        localStorage.setItem("job_master_admin_questions", JSON.stringify(sortedData));
+        const normalized = sortedData.map(item => normalizeQuestion(item));
+        setQuestions(normalized);
+        localStorage.setItem("job_master_admin_questions", JSON.stringify(normalized));
       }
     } catch (err: any) {
       console.error("Error connecting to Supabase:", err);
@@ -1594,21 +1637,24 @@ export default function AdminPage() {
                     {/* Searched Results Box */}
                     <div className="max-h-52 overflow-y-auto border border-slate-100 rounded-2xl bg-slate-50/50 p-2 space-y-2">
                       {questions
+                        .map(q => normalizeQuestion(q))
                         .filter(q => {
-                          const matchesSub = paperSearchSubject === "All" || q.subject === paperSearchSubject;
-                          const matchesText = !paperSearchQuery || q.question.toLowerCase().includes(paperSearchQuery.toLowerCase());
+                          const qSub = q.subject || q.subjectName || "";
+                          const qText = q.question || q.questionText || "";
+                          const matchesSub = paperSearchSubject === "All" || qSub === paperSearchSubject;
+                          const matchesText = !paperSearchQuery || qText.toLowerCase().includes(paperSearchQuery.toLowerCase());
                           return matchesSub && matchesText;
                         })
-                        .slice(0, 8)
+                        .slice(0, 12)
                         .map((q, idx) => {
-                          const isAdded = paperQuestions.some(pq => pq.id === q.id || pq.question === q.question);
+                          const isAdded = paperQuestions.some(pq => pq.id === q.id || (pq.question || pq.questionText) === q.question);
                           return (
                             <div key={q.id || idx} className="bg-white p-2.5 rounded-xl border border-slate-100 flex items-center justify-between gap-3">
                               <div className="text-xs text-slate-800 font-semibold line-clamp-1">
                                 <span className="text-[10px] font-extrabold text-[#FF6A00] bg-orange-50 px-1.5 py-0.5 rounded mr-1.5">
-                                  {q.subject || "General"}
+                                  {q.subject || q.subjectName || "General"}
                                 </span>
-                                {q.question}
+                                {q.question || q.questionText}
                               </div>
 
                               <button
@@ -1648,7 +1694,7 @@ export default function AdminPage() {
                               <span className="w-5 h-5 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">
                                 {idx + 1}
                               </span>
-                              <span>{pq.question}</span>
+                              <span>{pq.question || pq.questionText}</span>
                             </div>
 
                             <button

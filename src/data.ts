@@ -1,10 +1,13 @@
 export interface Question {
-  id: number;
+  id: number | string;
   question: string;
   options: string[];
   correctIndex: number;
   subject?: string;
   explanation?: string;
+  questionText?: string;
+  subjectName?: string;
+  correctOptionIndex?: number;
 }
 
 export const LIVE_QUIZ_ALLOWED_SUBJECTS = [

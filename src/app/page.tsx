@@ -669,7 +669,7 @@ export default function Home() {
             };
           });
 
-          mappedQuestions.sort((a, b) => a.id - b.id);
+          mappedQuestions.sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
           setAllRawQuestions(mappedQuestions);
           setQuestions(mappedQuestions);
           setIsUsingFallback(false);
@@ -3082,11 +3082,17 @@ export default function Home() {
               {/* Questions List */}
               <div className="space-y-4">
                 {viewingPaperModal.questions
-                  .filter(q => paperFilterSubject === "All" || q.subject === paperFilterSubject)
+                  .filter(q => {
+                    const qSub = q.subject || (q as any).subjectName;
+                    return paperFilterSubject === "All" || qSub === paperFilterSubject;
+                  })
                   .map((q, idx) => {
                     const isAnswerRevealed = revealedAnswers[idx];
                     const isExpRevealed = revealedExplanations[idx];
                     const isFav = bookmarkedQuestions[idx];
+                    const qSubject = q.subject || (q as any).subjectName;
+                    const qText = q.question || (q as any).questionText || "";
+                    const correctIdx = q.correctIndex !== undefined ? q.correctIndex : (q as any).correctOptionIndex;
 
                     return (
                       <div key={idx} className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3.5">
@@ -3094,20 +3100,20 @@ export default function Home() {
                         <div className="flex items-start justify-between gap-3">
                           <h3 className="text-xs sm:text-sm font-black text-slate-800 leading-relaxed">
                             <span className="text-[#FF6A00] mr-1.5">{idx + 1})</span>
-                            {q.question}
+                            {qText}
                           </h3>
-                          {q.subject && (
+                          {qSubject && (
                             <span className="text-[9px] font-extrabold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md shrink-0">
-                              {q.subject}
+                              {qSubject}
                             </span>
                           )}
                         </div>
 
                         {/* Options Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {q.options.map((opt, optIdx) => {
+                          {(q.options || []).map((opt, optIdx) => {
                             const optionLetters = ["ক", "খ", "গ", "ঘ"];
-                            const isCorrect = optIdx === q.correctIndex;
+                            const isCorrect = optIdx === correctIdx;
                             const showAsCorrect = isAnswerRevealed && isCorrect;
 
                             return (
