@@ -115,6 +115,7 @@ export default function AdminPage() {
 
   // Predefined Courses & Exam Types
   const COURSES = [
+    { id: "all_courses", name: "🌐 সকল কোর্স (All Courses - সব কোর্সে দেখাবে)" },
     { id: "bcs", name: "BCS Course (বিসিএস কোর্স)" },
     { id: "bank", name: "Bank Jobs (ব্যাংক নিয়োগ)" },
     { id: "primary", name: "Primary Teacher (প্রাথমিক শিক্ষক)" },
@@ -1749,7 +1750,7 @@ export default function AdminPage() {
                             {paper.status}
                           </span>
                           <span className="text-[10px] font-extrabold text-[#FF6A00] bg-orange-50 px-2 py-0.5 rounded uppercase">
-                            {paper.course.toUpperCase()} • {paper.examType.toUpperCase()}
+                            {(COURSES.find(c => c.id === paper.course)?.name || paper.course).toUpperCase()} • {paper.examType.toUpperCase()}
                           </span>
                         </div>
 

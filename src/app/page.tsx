@@ -1815,8 +1815,12 @@ export default function Home() {
 
               {/* Active / Dynamic Exam Cards for this course */}
               {(() => {
-                const coursePapers = examPapers.filter(p => p.course === selectedCourseDetail.id || p.course === "all_job");
-                const papersToDisplay = coursePapers.length > 0 ? coursePapers : examPapers;
+                const coursePapers = examPapers.filter(p => {
+                  if (!p.course) return true;
+                  if (p.course === "all_courses" || p.course === "all") return true;
+                  return p.course === selectedCourseDetail.id;
+                });
+                const papersToDisplay = coursePapers;
 
                 if (papersToDisplay.length === 0) {
                   return (
