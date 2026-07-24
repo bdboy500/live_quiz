@@ -306,6 +306,7 @@ export default function Home() {
   // Dynamic Exam Papers State
   const [examPapers, setExamPapers] = useState<ExamPaper[]>([]);
   const [selectedExamCategory, setSelectedExamCategory] = useState<"all" | "daily" | "weekly" | "subject" | "special">("all");
+  const [activeExamSection, setActiveExamSection] = useState<"daily" | "weekly" | "subject" | "special" | null>(null);
 
   // Quick Tools Archive Modal State
   const [archiveModalOpen, setArchiveModalOpen] = useState<boolean>(false);
@@ -1062,6 +1063,7 @@ export default function Home() {
                     onClick={() => {
                       const course = ALL_COURSES_DATA.find(c => c.id === "bcs");
                       setSelectedCourseDetail(course);
+                      setActiveExamSection(null);
                       setPreviousScreen("home");
                       setCurrentScreen("course-detail");
                       if (soundEnabled) quizAudio.playClick();
@@ -1079,6 +1081,7 @@ export default function Home() {
                     onClick={() => {
                       const course = ALL_COURSES_DATA.find(c => c.id === "bank");
                       setSelectedCourseDetail(course);
+                      setActiveExamSection(null);
                       setPreviousScreen("home");
                       setCurrentScreen("course-detail");
                       if (soundEnabled) quizAudio.playClick();
@@ -1096,6 +1099,7 @@ export default function Home() {
                     onClick={() => {
                       const course = ALL_COURSES_DATA.find(c => c.id === "primary");
                       setSelectedCourseDetail(course);
+                      setActiveExamSection(null);
                       setPreviousScreen("home");
                       setCurrentScreen("course-detail");
                       if (soundEnabled) quizAudio.playClick();
@@ -1113,6 +1117,7 @@ export default function Home() {
                     onClick={() => {
                       const course = ALL_COURSES_DATA.find(c => c.id === "ntrca");
                       setSelectedCourseDetail(course);
+                      setActiveExamSection(null);
                       setPreviousScreen("home");
                       setCurrentScreen("course-detail");
                       if (soundEnabled) quizAudio.playClick();
@@ -1130,6 +1135,7 @@ export default function Home() {
                     onClick={() => {
                       const course = ALL_COURSES_DATA.find(c => c.id === "psc");
                       setSelectedCourseDetail(course);
+                      setActiveExamSection(null);
                       setPreviousScreen("home");
                       setCurrentScreen("course-detail");
                       if (soundEnabled) quizAudio.playClick();
@@ -1147,6 +1153,7 @@ export default function Home() {
                     onClick={() => {
                       const course = ALL_COURSES_DATA.find(c => c.id === "all_job");
                       setSelectedCourseDetail(course);
+                      setActiveExamSection(null);
                       setPreviousScreen("home");
                       setCurrentScreen("course-detail");
                       if (soundEnabled) quizAudio.playClick();
@@ -1583,6 +1590,7 @@ export default function Home() {
                         key={course.id}
                         onClick={() => {
                           setSelectedCourseDetail(course);
+                          setActiveExamSection(null);
                           setPreviousScreen("courses");
                           setCurrentScreen("course-detail");
                           if (soundEnabled) quizAudio.playClick();
@@ -1796,7 +1804,11 @@ export default function Home() {
               <div className="flex items-center gap-3">
                 <button 
                   onClick={() => {
-                    setCurrentScreen(previousScreen);
+                    if (activeExamSection) {
+                      setActiveExamSection(null);
+                    } else {
+                      setCurrentScreen(previousScreen);
+                    }
                     if (soundEnabled) quizAudio.playClick();
                   }}
                   className="p-2 bg-white hover:bg-slate-100 rounded-xl text-slate-700 shadow-sm transition-all active:scale-90 cursor-pointer"
@@ -1805,10 +1817,18 @@ export default function Home() {
                 </button>
                 <div className="space-y-0.5">
                   <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#FF6A00] bg-orange-50 px-2.5 py-0.5 rounded-full">
-                    {selectedCourseDetail.category} Course
+                    {selectedCourseDetail.category} Course {activeExamSection ? `• ${
+                      activeExamSection === "daily" ? "⚡ ডেইলি মডেল টেস্ট" :
+                      activeExamSection === "weekly" ? "📅 সাপ্তাহিক মডেল টেস্ট" :
+                      activeExamSection === "subject" ? "📚 বিষয়ভিত্তিক" : "⭐ স্পেশাল কুইজ"
+                    }` : ""}
                   </span>
-                  <h3 className="font-extrabold text-sm text-slate-900 tracking-tight leading-none mt-1">
-                    {selectedCourseDetail.title}
+                  <h3 className="font-extrabold text-sm sm:text-base text-slate-900 tracking-tight leading-none mt-1">
+                    {selectedCourseDetail.title} {activeExamSection ? `(${
+                      activeExamSection === "daily" ? "ডেইলি মডেল টেস্ট" :
+                      activeExamSection === "weekly" ? "সাপ্তাহিক মডেল টেস্ট" :
+                      activeExamSection === "subject" ? "বিষয়ভিত্তিক পরীক্ষা" : "স্পেশাল কুইজ"
+                    })` : ""}
                   </h3>
                 </div>
               </div>
@@ -1817,207 +1837,274 @@ export default function Home() {
               <div className="bg-amber-50 border border-amber-200/80 text-amber-900 rounded-2xl p-3 text-xs font-bold flex items-center justify-between gap-2 shadow-2xs">
                 <div className="flex items-center gap-2">
                   <Bell className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>আপনি আজকের পরীক্ষায় অংশগ্রহণ করেছেন। ফলাফল প্রকাশ: আগামীকাল সকাল ১১টার মধ্যে</span>
+                  <span>
+                    {activeExamSection 
+                      ? "পছন্দের পরীক্ষাটিতে অংশ নিয়ে নিজের লাইভ র‍্যাংকিং দেখতে 'পরীক্ষা দিন' বাটনে ক্লিক করুন।" 
+                      : "আপনার কাঙ্ক্ষিত পরীক্ষা সেকশন নির্বাচন করে লাইভ মক টেস্টে অংশগ্রহণ করুন।"}
+                  </span>
                 </div>
               </div>
 
-              {/* Category selector tabs for exams (Weekly, Daily, Subject Wise, Special) */}
-              <div className="space-y-2 pt-1">
-                <div className="text-xs font-black text-slate-700 flex items-center justify-between px-1">
-                  <span>পরীক্ষার ধরন (Exam Sections)</span>
-                  <span className="text-[10px] text-slate-400 font-bold">ক্যাটাগরি ফিল্টার</span>
-                </div>
-
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                  {[
-                    { id: "all", label: "সকল মডেল টেস্ট" },
-                    { id: "daily", label: "⚡ ডেইলি মডেল টেস্ট" },
-                    { id: "weekly", label: "📅 সাপ্তাহিক মডেল টেস্ট" },
-                    { id: "subject", label: "📚 বিষয়ভিত্তিক" },
-                    { id: "special", label: "⭐ স্পেশাল কুইজ" },
-                  ].map(tab => {
-                    const isActive = selectedExamCategory === tab.id;
-                    const count = examPapers.filter(p => {
-                      const isArchived = p.status?.toLowerCase() === "archive" || p.status?.toLowerCase() === "archived";
-                      if (isArchived) return false;
-                      if (p.course && p.course !== "all_courses" && p.course !== "all" && p.course !== selectedCourseDetail.id) return false;
-                      if (tab.id !== "all" && p.examType !== tab.id) return false;
-                      return true;
-                    }).length;
-
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => {
-                          setSelectedExamCategory(tab.id as any);
-                          if (soundEnabled) quizAudio.playClick();
-                        }}
-                        className={`px-3.5 py-2 rounded-2xl text-xs font-black shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
-                          isActive 
-                            ? "bg-[#FF6A00] text-white shadow-md shadow-orange-500/20" 
-                            : "bg-white text-slate-600 border border-slate-100 hover:bg-slate-50"
-                        }`}
-                      >
-                        <span>{tab.label}</span>
-                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${
-                          isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
-                        }`}>
-                          {count}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Active / Dynamic Exam Cards for this course */}
-              {(() => {
-                const coursePapers = examPapers.filter(p => {
-                  // Filter out archived papers
-                  const isArchived = p.status?.toLowerCase() === "archive" || p.status?.toLowerCase() === "archived";
-                  if (isArchived) return false;
-
-                  // Filter by course
-                  if (p.course && p.course !== "all_courses" && p.course !== "all" && p.course !== selectedCourseDetail.id) {
-                    return false;
-                  }
-
-                  // Filter by category tab
-                  if (selectedExamCategory !== "all") {
-                    return p.examType === selectedExamCategory;
-                  }
-
-                  return true;
-                });
-
-                if (coursePapers.length === 0) {
-                  return (
-                    <div className="bg-white border border-slate-100 rounded-[2rem] p-6 text-center space-y-2">
-                      <HelpCircle className="w-8 h-8 text-slate-300 mx-auto" />
-                      <p className="text-xs font-bold text-slate-400">
-                        {selectedExamCategory === "all" 
-                          ? "এই কোর্সের জন্য এখনো কোনো লাইভ প্রশ্ন পত্র পাওয়া যায়নি।"
-                          : "এই সেকশনে (ক্যাটাগরি) এখনো কোনো মডেল টেস্ট যুক্ত করা হয়নি।"}
-                      </p>
+              {/* CASE 1: Main Course Screen with 4 Exam Section Cards Grid + Quick Tools */}
+              {!activeExamSection && (
+                <>
+                  {/* 4 Exam Category Cards Grid */}
+                  <div className="space-y-2 pt-1">
+                    <div className="text-xs font-black text-slate-700 flex items-center justify-between px-1">
+                      <span>পরীক্ষার সেকশনসমূহ (Exam Sections)</span>
+                      <span className="text-[10px] text-slate-400 font-bold">সেকশনে ক্লিক করে ভেতরে প্রবেশ করুন</span>
                     </div>
-                  );
-                }
 
-                const examTypeBadgeMap: Record<string, { label: string; bg: string }> = {
-                  daily: { label: "⚡ ডেইলি মডেল টেস্ট", bg: "bg-amber-50 text-amber-700 border-amber-100" },
-                  weekly: { label: "📅 সাপ্তাহিক মডেল টেস্ট", bg: "bg-purple-50 text-purple-700 border-purple-100" },
-                  subject: { label: "📚 বিষয়ভিত্তিক", bg: "bg-blue-50 text-blue-700 border-blue-100" },
-                  special: { label: "⭐ স্পেশাল কুইজ", bg: "bg-rose-50 text-rose-700 border-rose-100" }
-                };
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { 
+                          id: "daily", 
+                          title: "⚡ ডেইলি মডেল টেস্ট", 
+                          desc: "প্রতিদিনের বিষয়ভিত্তিক শর্ট মডেল টেস্ট",
+                          color: "bg-amber-50 border-amber-100 text-amber-700 hover:border-amber-300",
+                          iconBg: "bg-amber-500 text-white"
+                        },
+                        { 
+                          id: "weekly", 
+                          title: "📅 সাপ্তাহিক মডেল টেস্ট", 
+                          desc: "সাপ্তাহিক মেগা লাইভ ফুল মডেল টেস্ট",
+                          color: "bg-purple-50 border-purple-100 text-purple-700 hover:border-purple-300",
+                          iconBg: "bg-purple-600 text-white"
+                        },
+                        { 
+                          id: "subject", 
+                          title: "📚 বিষয়ভিত্তিক পরীক্ষা", 
+                          desc: "বিষয় অনুযায়ী নির্দিষ্ট অধ্যায়ের কুইজ",
+                          color: "bg-blue-50 border-blue-100 text-blue-700 hover:border-blue-300",
+                          iconBg: "bg-blue-600 text-white"
+                        },
+                        { 
+                          id: "special", 
+                          title: "⭐ স্পেশাল কুইজ", 
+                          desc: "স্পেশাল টপিক ও সাম্প্রতিক কুইজ পরীক্ষা",
+                          color: "bg-rose-50 border-rose-100 text-rose-700 hover:border-rose-300",
+                          iconBg: "bg-rose-600 text-white"
+                        }
+                      ].map((sec) => {
+                        const count = examPapers.filter(p => {
+                          const isArchived = p.status?.toLowerCase() === "archive" || p.status?.toLowerCase() === "archived";
+                          if (isArchived) return false;
+                          if (p.course && p.course !== "all_courses" && p.course !== "all" && p.course !== selectedCourseDetail.id) return false;
+                          return p.examType === sec.id;
+                        }).length;
 
-                return (
-                  <div className="space-y-4">
-                    {coursePapers.map((paper) => {
-                      const totalSec = paper.totalDurationSeconds || (paper.questions?.length || 10) * 36;
-                      const durationMins = Math.floor(totalSec / 60);
-                      const typeBadge = examTypeBadgeMap[paper.examType] || { label: paper.examType, bg: "bg-slate-50 text-slate-700 border-slate-100" };
-
-                      return (
-                        <div key={paper.id} className="bg-white border border-slate-100 hover:border-orange-200 rounded-[2rem] p-5 shadow-sm space-y-3.5 transition-all">
-                          {/* Header Date & Badges */}
-                          <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <span className="text-[11px] font-extrabold text-slate-500">
-                              📅 {paper.examDate || "Fri, Jul 31, 2026"}
-                            </span>
-                            <div className="flex items-center gap-1.5">
-                              <span className={`font-extrabold text-[10px] px-2.5 py-0.5 rounded-full border ${typeBadge.bg}`}>
-                                {typeBadge.label}
-                              </span>
-                              <span className="bg-emerald-50 text-emerald-600 font-black text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-emerald-100">
-                                ● {paper.status || "Live"}
+                        return (
+                          <div
+                            key={sec.id}
+                            onClick={() => {
+                              setActiveExamSection(sec.id as any);
+                              if (soundEnabled) quizAudio.playClick();
+                            }}
+                            className={`bg-white border rounded-[1.75rem] p-4 flex flex-col justify-between gap-3 shadow-2xs transition-all active:scale-98 cursor-pointer hover:shadow-md ${sec.color}`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <h4 className="font-extrabold text-xs sm:text-sm text-slate-800 leading-snug">
+                                {sec.title}
+                              </h4>
+                              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${
+                                count > 0 ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"
+                              }`}>
+                                {count} টি এক্সাম
                               </span>
                             </div>
-                          </div>
 
-                          {/* Marks & Duration */}
-                          <div className="text-xs font-bold text-slate-500 flex items-center gap-2">
-                            <span>Total marks: {paper.totalMarks || paper.questions?.length || 10}</span>
-                            <span>•</span>
-                            <span>Duration: {durationMins} mins (৩৬ সে/প্রশ্ন)</span>
-                          </div>
+                            <p className="text-[11px] font-bold text-slate-500 leading-tight">
+                              {sec.desc}
+                            </p>
 
-                          {/* Title & Topic */}
-                          <div className="space-y-1">
-                            {paper.topic && (
-                              <div className="text-xs font-extrabold text-[#FF6A00]">
-                                Topic: <span className="text-slate-800 font-bold">"{paper.topic}"</span>
-                              </div>
-                            )}
-                            <h4 className="text-sm font-black text-slate-800 leading-snug">
-                              {paper.title}
-                            </h4>
+                            <div className="pt-1 flex items-center justify-between text-[11px] font-black text-[#FF6A00]">
+                              <span>পরীক্ষা দেখুন</span>
+                              <span>→</span>
+                            </div>
                           </div>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-                          {/* Action Buttons: Take Exam & Question Paper */}
-                          <div className="grid grid-cols-2 gap-3 pt-1">
-                            <button
-                              onClick={() => handleOpenTakeExam(paper)}
-                              className="bg-purple-600 hover:bg-purple-700 text-white font-black text-xs py-3 rounded-2xl active:scale-95 transition-all shadow-md shadow-purple-500/10 cursor-pointer flex items-center justify-center gap-1.5"
-                            >
-                              <span>📝 পরীক্ষা দিন</span>
-                            </button>
+                  {/* 8 Feature Grid Nav Buttons (Quick Tools & Archive) */}
+                  <div className="space-y-2 pt-3">
+                    <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider pl-1">
+                      কোর্স টুলস ও আর্কাইভ (Quick Tools)
+                    </h4>
 
-                            <button
-                              onClick={() => handleOpenViewPaper(paper)}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-3 rounded-2xl active:scale-95 transition-all shadow-md shadow-emerald-500/10 cursor-pointer flex items-center justify-center gap-1.5"
-                            >
-                              <span>📄 প্রশ্নপত্র</span>
-                            </button>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        { name: "Routine", icon: "📅", color: "bg-blue-50 text-blue-600" },
+                        { name: "Result", icon: "🏆", color: "bg-amber-50 text-amber-600" },
+                        { name: "Archive", icon: "📂", color: "bg-purple-50 text-purple-600" },
+                        { name: "Favorite", icon: "🩶", color: "bg-rose-50 text-rose-600" },
+                        { name: "Syllabus", icon: "📜", color: "bg-green-50 text-green-600" },
+                        { name: "Merit List", icon: "🎖️", color: "bg-indigo-50 text-indigo-600" },
+                        { name: "Wrong & Unans", icon: "✕", color: "bg-red-50 text-red-600" },
+                        { name: "PDFs", icon: "📄", color: "bg-[#FFF1E6] text-[#FF6A00]" },
+                      ].map((item, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            if (item.name === "Routine") setCurrentScreen("routine");
+                            else if (item.name === "Result" || item.name === "Merit List") setCurrentScreen("tests");
+                            else if (item.name === "Archive") {
+                              setArchiveModalOpen(true);
+                              if (selectedCourseDetail?.id) {
+                                setArchiveFilterCourse(selectedCourseDetail.id);
+                              }
+                            }
+                            if (soundEnabled) quizAudio.playClick();
+                          }}
+                          className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1.5 text-center hover:border-orange-200 transition-all active:scale-95 cursor-pointer shadow-2xs"
+                        >
+                          <span className={`w-8 h-8 rounded-xl ${item.color} flex items-center justify-center text-sm font-black`}>
+                            {item.icon}
+                          </span>
+                          <span className="text-[10px] font-extrabold text-slate-700 truncate w-full">
+                            {item.name}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* CASE 2: Inside Specific Exam Section (e.g. Daily Model Test) */}
+              {activeExamSection && (
+                <div className="space-y-4">
+                  {/* Section Breadcrumb Banner */}
+                  <div className="bg-white border border-slate-200/80 rounded-2xl p-4 flex items-center justify-between shadow-2xs">
+                    <div>
+                      <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                        <span>
+                          {activeExamSection === "daily" ? "⚡ ডেইলি মডেল টেস্ট তালিকা" :
+                           activeExamSection === "weekly" ? "📅 সাপ্তাহিক মডেল টেস্ট তালিকা" :
+                           activeExamSection === "subject" ? "📚 বিষয়ভিত্তিক পরীক্ষা তালিকা" : "⭐ স্পেশাল কুইজ তালিকা"}
+                        </span>
+                      </h4>
+                      <p className="text-[11px] font-bold text-slate-400">
+                        {selectedCourseDetail.title} এর অধীনে লাইভ প্রশ্নপত্রসমূহ
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => setActiveExamSection(null)}
+                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black rounded-xl cursor-pointer"
+                    >
+                      ← অন্য সেকশন
+                    </button>
+                  </div>
+
+                  {/* Papers list for this section */}
+                  {(() => {
+                    const sectionPapers = examPapers.filter(p => {
+                      const isArchived = p.status?.toLowerCase() === "archive" || p.status?.toLowerCase() === "archived";
+                      if (isArchived) return false;
+                      if (p.course && p.course !== "all_courses" && p.course !== "all" && p.course !== selectedCourseDetail.id) {
+                        return false;
+                      }
+                      return p.examType === activeExamSection;
+                    });
+
+                    if (sectionPapers.length === 0) {
+                      return (
+                        <div className="bg-white border border-slate-200/80 rounded-[2rem] p-8 text-center space-y-3 shadow-2xs">
+                          <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto text-xl font-black">
+                            {activeExamSection === "daily" ? "⚡" : activeExamSection === "weekly" ? "📅" : activeExamSection === "subject" ? "📚" : "⭐"}
                           </div>
+                          <h3 className="text-sm font-black text-slate-800">
+                            বর্তমানে এই সেকশনে কোনো পরীক্ষা লাইভ নেই
+                          </h3>
+                          <p className="text-xs font-bold text-slate-400 max-w-sm mx-auto">
+                            অ্যাডমিন প্যানেল থেকে প্রশ্নপত্র পাবলিশ বা এড করা হলে তা এখানে সরাসরি দেখা যাবে এবং পরীক্ষা দেওয়া যাবে।
+                          </p>
+                          <button
+                            onClick={() => setActiveExamSection(null)}
+                            className="px-4 py-2 bg-[#FF6A00] text-white text-xs font-black rounded-xl active:scale-95 transition-all cursor-pointer shadow-sm shadow-orange-500/20 inline-block"
+                          >
+                            অন্যান্য সেকশন দেখুন
+                          </button>
                         </div>
                       );
-                    })}
-                  </div>
-                );
-              })()}
+                    }
 
-              {/* 8 Feature Grid Nav Buttons (Matching Image 2) */}
-              <div className="space-y-2 pt-2">
-                <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider pl-1">
-                  কোর্স টুলস ও আর্কাইভ (Quick Tools)
-                </h4>
+                    const examTypeBadgeMap: Record<string, { label: string; bg: string }> = {
+                      daily: { label: "⚡ ডেইলি মডেল টেস্ট", bg: "bg-amber-50 text-amber-700 border-amber-100" },
+                      weekly: { label: "📅 সাপ্তাহিক মডেল টেস্ট", bg: "bg-purple-50 text-purple-700 border-purple-100" },
+                      subject: { label: "📚 বিষয়ভিত্তিক", bg: "bg-blue-50 text-blue-700 border-blue-100" },
+                      special: { label: "⭐ স্পেশাল কুইজ", bg: "bg-rose-50 text-rose-700 border-rose-100" }
+                    };
 
-                <div className="grid grid-cols-4 gap-2">
-                  {[
-                    { name: "Routine", icon: "📅", color: "bg-blue-50 text-blue-600" },
-                    { name: "Result", icon: "🏆", color: "bg-amber-50 text-amber-600" },
-                    { name: "Archive", icon: "📂", color: "bg-purple-50 text-purple-600" },
-                    { name: "Favorite", icon: "🩶", color: "bg-rose-50 text-rose-600" },
-                    { name: "Syllabus", icon: "📜", color: "bg-green-50 text-green-600" },
-                    { name: "Merit List", icon: "🎖️", color: "bg-indigo-50 text-indigo-600" },
-                    { name: "Wrong & Unans", icon: "✕", color: "bg-red-50 text-red-600" },
-                    { name: "PDFs", icon: "📄", color: "bg-[#FFF1E6] text-[#FF6A00]" },
-                  ].map((item, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        if (item.name === "Routine") setCurrentScreen("routine");
-                        else if (item.name === "Result" || item.name === "Merit List") setCurrentScreen("tests");
-                        else if (item.name === "Archive") {
-                          setArchiveModalOpen(true);
-                          if (selectedCourseDetail?.id) {
-                            setArchiveFilterCourse(selectedCourseDetail.id);
-                          }
-                        }
-                        if (soundEnabled) quizAudio.playClick();
-                      }}
-                      className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1.5 text-center hover:border-orange-200 transition-all active:scale-95 cursor-pointer shadow-2xs"
-                    >
-                      <span className={`w-8 h-8 rounded-xl ${item.color} flex items-center justify-center text-sm font-black`}>
-                        {item.icon}
-                      </span>
-                      <span className="text-[10px] font-extrabold text-slate-700 truncate w-full">
-                        {item.name}
-                      </span>
-                    </button>
-                  ))}
+                    return (
+                      <div className="space-y-4">
+                        {sectionPapers.map((paper) => {
+                          const totalSec = paper.totalDurationSeconds || (paper.questions?.length || 10) * 36;
+                          const durationMins = Math.floor(totalSec / 60);
+                          const typeBadge = examTypeBadgeMap[paper.examType] || { label: paper.examType, bg: "bg-slate-50 text-slate-700 border-slate-100" };
+
+                          return (
+                            <div key={paper.id} className="bg-white border border-slate-200/80 hover:border-orange-200 rounded-[2rem] p-5 shadow-2xs space-y-3.5 transition-all">
+                              {/* Header Date & Badges */}
+                              <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <span className="text-[11px] font-extrabold text-slate-500">
+                                  📅 {paper.examDate || "Fri, Jul 31, 2026"}
+                                </span>
+                                <div className="flex items-center gap-1.5">
+                                  <span className={`font-extrabold text-[10px] px-2.5 py-0.5 rounded-full border ${typeBadge.bg}`}>
+                                    {typeBadge.label}
+                                  </span>
+                                  <span className="bg-emerald-50 text-emerald-600 font-black text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-emerald-100">
+                                    ● {paper.status || "Live"}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Marks & Duration */}
+                              <div className="text-xs font-bold text-slate-500 flex items-center gap-2">
+                                <span>Total marks: {paper.totalMarks || paper.questions?.length || 10}</span>
+                                <span>•</span>
+                                <span>Duration: {durationMins} mins (৩৬ সে/প্রশ্ন)</span>
+                              </div>
+
+                              {/* Title & Topic */}
+                              <div className="space-y-1">
+                                {paper.topic && (
+                                  <div className="text-xs font-extrabold text-[#FF6A00]">
+                                    Topic: <span className="text-slate-800 font-bold">"{paper.topic}"</span>
+                                  </div>
+                                )}
+                                <h4 className="text-sm font-black text-slate-800 leading-snug">
+                                  {paper.title}
+                                </h4>
+                              </div>
+
+                              {/* Action Buttons: Take Exam & Question Paper */}
+                              <div className="grid grid-cols-2 gap-3 pt-1">
+                                <button
+                                  onClick={() => handleOpenTakeExam(paper)}
+                                  className="bg-purple-600 hover:bg-purple-700 text-white font-black text-xs py-3 rounded-2xl active:scale-95 transition-all shadow-md shadow-purple-500/10 cursor-pointer flex items-center justify-center gap-1.5"
+                                >
+                                  <span>📝 পরীক্ষা দিন</span>
+                                </button>
+
+                                <button
+                                  onClick={() => handleOpenViewPaper(paper)}
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-3 rounded-2xl active:scale-95 transition-all shadow-md shadow-emerald-500/10 cursor-pointer flex items-center justify-center gap-1.5"
+                                >
+                                  <span>📄 প্রশ্নপত্র</span>
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
                 </div>
-              </div>
+              )}
 
             </div>
           )}
