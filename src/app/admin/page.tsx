@@ -26,7 +26,8 @@ import {
   Pencil,
   Filter,
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  Archive
 } from "lucide-react";
 import Link from "next/link";
 import { QUIZ_QUESTIONS, Question } from "../../data";
@@ -354,6 +355,17 @@ export default function AdminPage() {
     await deleteExamPaperFromDb(id);
     await loadExamPapersFromDb();
     triggerNotification("success", "প্রশ্ন পত্র ডিলেট করা হয়েছে।");
+  };
+
+  const handleToggleArchiveExamPaper = async (paper: ExamPaper) => {
+    const isArchived = paper.status === "Archive" || (paper.status as string).toLowerCase() === "archived";
+    const updatedPaper: ExamPaper = {
+      ...paper,
+      status: isArchived ? "Live" : "Archive"
+    };
+    await saveExamPaperToDb(updatedPaper);
+    await loadExamPapersFromDb();
+    triggerNotification("success", isArchived ? "প্রশ্নপত্রটি পুনরায় লাইভ করা হয়েছে!" : "প্রশ্নপত্রটি আর্কাইভে পাঠানো হয়েছে!");
   };
 
   // Sync users and offers updates
@@ -1767,6 +1779,19 @@ export default function AdminPage() {
 
                       {/* Action Buttons */}
                       <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                        <button
+                          onClick={() => handleToggleArchiveExamPaper(paper)}
+                          className={`px-3 py-2 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center gap-1 ${
+                            paper.status === "Archive" || (paper.status as string).toLowerCase() === "archived"
+                              ? "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200"
+                              : "bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200"
+                          }`}
+                          title={paper.status === "Archive" || (paper.status as string).toLowerCase() === "archived" ? "লাইভ করুন" : "আর্কাইভ করুন"}
+                        >
+                          <Archive className="w-3.5 h-3.5" />
+                          <span>{paper.status === "Archive" || (paper.status as string).toLowerCase() === "archived" ? "লাইভ করুন" : "আর্কাইভ"}</span>
+                        </button>
+
                         <button
                           onClick={() => handleEditExamPaper(paper)}
                           className="px-3 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center gap-1"
