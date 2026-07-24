@@ -941,7 +941,14 @@ export default function Home() {
                     setDrawerOpen(false);
                     setCurrentScreen("home");
                   }
-                } else if (currentScreen === "course-detail" || currentScreen === "prep-sub") {
+                } else if (currentScreen === "course-detail") {
+                  if (activeExamSection) {
+                    setActiveExamSection(null);
+                  } else {
+                    setDrawerOpen(false);
+                    setCurrentScreen("home");
+                  }
+                } else if (currentScreen === "prep-sub") {
                   setDrawerOpen(false);
                   setCurrentScreen("home");
                 } else {
@@ -1800,194 +1807,99 @@ export default function Home() {
           {currentScreen === "course-detail" && selectedCourseDetail && (
             <div className="p-4 sm:p-5 space-y-4 animate-fade-in pb-10 text-left">
               
-              {/* Back Button & Title */}
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={() => {
-                    if (activeExamSection) {
-                      setActiveExamSection(null);
-                    } else {
-                      setCurrentScreen(previousScreen);
-                    }
-                    if (soundEnabled) quizAudio.playClick();
-                  }}
-                  className="p-2 bg-white hover:bg-slate-100 rounded-xl text-slate-700 shadow-sm transition-all active:scale-90 cursor-pointer"
-                >
-                  <ArrowLeft className="w-5 h-5 stroke-[2.5px]" />
-                </button>
-                <div className="space-y-0.5">
-                  <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#FF6A00] bg-orange-50 px-2.5 py-0.5 rounded-full">
-                    {selectedCourseDetail.category} Course {activeExamSection ? `• ${
-                      activeExamSection === "daily" ? "⚡ ডেইলি মডেল টেস্ট" :
-                      activeExamSection === "weekly" ? "📅 সাপ্তাহিক মডেল টেস্ট" :
-                      activeExamSection === "subject" ? "📚 বিষয়ভিত্তিক" : "⭐ স্পেশাল কুইজ"
-                    }` : ""}
-                  </span>
-                  <h3 className="font-extrabold text-sm sm:text-base text-slate-900 tracking-tight leading-none mt-1">
-                    {selectedCourseDetail.title} {activeExamSection ? `(${
-                      activeExamSection === "daily" ? "ডেইলি মডেল টেস্ট" :
-                      activeExamSection === "weekly" ? "সাপ্তাহিক মডেল টেস্ট" :
-                      activeExamSection === "subject" ? "বিষয়ভিত্তিক পরীক্ষা" : "স্পেশাল কুইজ"
-                    })` : ""}
-                  </h3>
-                </div>
-              </div>
-
-              {/* Alert Notification Banner */}
-              <div className="bg-amber-50 border border-amber-200/80 text-amber-900 rounded-2xl p-3 text-xs font-bold flex items-center justify-between gap-2 shadow-2xs">
-                <div className="flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>
-                    {activeExamSection 
-                      ? "পছন্দের পরীক্ষাটিতে অংশ নিয়ে নিজের লাইভ র‍্যাংকিং দেখতে 'পরীক্ষা দিন' বাটনে ক্লিক করুন।" 
-                      : "আপনার কাঙ্ক্ষিত পরীক্ষা সেকশন নির্বাচন করে লাইভ মক টেস্টে অংশগ্রহণ করুন।"}
-                  </span>
-                </div>
-              </div>
-
-              {/* CASE 1: Main Course Screen with Stacked Exam Section Rows (Apple Style, vertical list) */}
+              {/* CASE 1: Main Course Screen - Only Stacked Exam Section List (Apple Style) */}
               {!activeExamSection && (
-                <div className="space-y-5">
-                  {/* Vertically Stacked Exam Sections (one below another) */}
-                  <div className="space-y-3">
-                    <div className="text-xs font-black text-slate-700 flex items-center justify-between px-1">
-                      <span>পরীক্ষার সেকশনসমূহ (Exam Sections)</span>
-                      <span className="text-[10px] text-slate-400 font-bold">সেকশনে ক্লিক করে ভেতরে প্রবেশ করুন</span>
-                    </div>
+                <div className="space-y-3">
+                  <div className="flex flex-col gap-3">
+                    {(() => {
+                      const isBCSCourse = selectedCourseDetail?.id === "bcs";
 
-                    <div className="flex flex-col gap-3">
-                      {(() => {
-                        const isBCSCourse = selectedCourseDetail?.id === "bcs";
+                      const allSections = [
+                        { 
+                          id: "weekly", 
+                          title: "Weekly Model Test", 
+                          banglaTitle: "📅 সাপ্তাহিক মডেল টেস্ট",
+                          desc: "সাপ্তাহিক লাইভ ফুল মডেল টেস্ট",
+                          color: "border-purple-200/90 hover:border-purple-400 bg-white",
+                          iconBg: "bg-purple-100 text-purple-700",
+                          icon: "📅"
+                        },
+                        { 
+                          id: "daily", 
+                          title: "Daily Model Test", 
+                          banglaTitle: "⚡ ডেইলি মডেল টেস্ট",
+                          desc: "প্রতিদিনের বিষয়ভিত্তিক শর্ট মডেল টেস্ট",
+                          color: "border-amber-200/90 hover:border-amber-400 bg-white",
+                          iconBg: "bg-amber-100 text-amber-700",
+                          icon: "⚡"
+                        },
+                        ...(isBCSCourse ? [{
+                          id: "special", 
+                          title: "BCS Health Special", 
+                          banglaTitle: "🩺 BCS Health Special",
+                          desc: "বিসিএস স্বাস্থ্য ক্যাডার বিশেষ মডেল টেস্ট",
+                          color: "border-rose-200/90 hover:border-rose-400 bg-white",
+                          iconBg: "bg-rose-100 text-rose-700",
+                          icon: "🩺"
+                        }] : []),
+                        { 
+                          id: "subject", 
+                          title: "Subject Wise Test", 
+                          banglaTitle: "📚 বিষয়ভিত্তিক পরীক্ষা",
+                          desc: "বিষয় অনুযায়ী নির্দিষ্ট অধ্যায়ের কুইজ",
+                          color: "border-blue-200/90 hover:border-blue-400 bg-white",
+                          iconBg: "bg-blue-100 text-blue-700",
+                          icon: "📚"
+                        }
+                      ];
 
-                        const allSections = [
-                          { 
-                            id: "weekly", 
-                            title: "Weekly Model Test", 
-                            banglaTitle: "📅 সাপ্তাহিক মডেল টেস্ট",
-                            desc: "সাপ্তাহিক লাইভ ফুল মডেল টেস্ট",
-                            color: "border-purple-200/90 hover:border-purple-400 bg-white",
-                            iconBg: "bg-purple-100 text-purple-700",
-                            icon: "📅"
-                          },
-                          { 
-                            id: "daily", 
-                            title: "Daily Model Test", 
-                            banglaTitle: "⚡ ডেইলি মডেল টেস্ট",
-                            desc: "প্রতিদিনের বিষয়ভিত্তিক শর্ট মডেল টেস্ট",
-                            color: "border-amber-200/90 hover:border-amber-400 bg-white",
-                            iconBg: "bg-amber-100 text-amber-700",
-                            icon: "⚡"
-                          },
-                          ...(isBCSCourse ? [{
-                            id: "special", 
-                            title: "BCS Health Special", 
-                            banglaTitle: "🩺 BCS Health Special",
-                            desc: "বিসিএস স্বাস্থ্য ক্যাডার বিশেষ মডেল টেস্ট",
-                            color: "border-rose-200/90 hover:border-rose-400 bg-white",
-                            iconBg: "bg-rose-100 text-rose-700",
-                            icon: "🩺"
-                          }] : []),
-                          { 
-                            id: "subject", 
-                            title: "Subject Wise Test", 
-                            banglaTitle: "📚 বিষয়ভিত্তিক পরীক্ষা",
-                            desc: "বিষয় অনুযায়ী নির্দিষ্ট অধ্যায়ের কুইজ",
-                            color: "border-blue-200/90 hover:border-blue-400 bg-white",
-                            iconBg: "bg-blue-100 text-blue-700",
-                            icon: "📚"
-                          }
-                        ];
+                      return allSections.map((sec) => {
+                        const count = examPapers.filter(p => {
+                          const isArchived = p.status?.toLowerCase() === "archive" || p.status?.toLowerCase() === "archived";
+                          if (isArchived) return false;
+                          if (p.course && p.course !== "all_courses" && p.course !== "all" && p.course !== selectedCourseDetail.id) return false;
+                          return p.examType === sec.id;
+                        }).length;
 
-                        return allSections.map((sec) => {
-                          const count = examPapers.filter(p => {
-                            const isArchived = p.status?.toLowerCase() === "archive" || p.status?.toLowerCase() === "archived";
-                            if (isArchived) return false;
-                            if (p.course && p.course !== "all_courses" && p.course !== "all" && p.course !== selectedCourseDetail.id) return false;
-                            return p.examType === sec.id;
-                          }).length;
-
-                          return (
-                            <div
-                              key={sec.id}
-                              onClick={() => {
-                                setActiveExamSection(sec.id as any);
-                                if (soundEnabled) quizAudio.playClick();
-                              }}
-                              className={`w-full ${sec.color} border rounded-2xl sm:rounded-3xl p-4 sm:p-4.5 flex items-center justify-between gap-3 shadow-2xs hover:shadow-md transition-all active:scale-[0.98] cursor-pointer group`}
-                            >
-                              {/* Left side: Icon + Text */}
-                              <div className="flex items-center gap-3.5 min-w-0">
-                                <div className={`w-11 h-11 rounded-2xl ${sec.iconBg} flex items-center justify-center text-lg font-black shrink-0 shadow-2xs`}>
-                                  {sec.icon}
-                                </div>
-                                <div className="space-y-0.5 truncate">
-                                  <h4 className="font-black text-sm sm:text-base text-slate-900 group-hover:text-[#FF6A00] transition-colors truncate">
-                                    {sec.title}
-                                  </h4>
-                                  <p className="text-[11px] font-bold text-slate-400 truncate">
-                                    {sec.desc}
-                                  </p>
-                                </div>
+                        return (
+                          <div
+                            key={sec.id}
+                            onClick={() => {
+                              setActiveExamSection(sec.id as any);
+                              if (soundEnabled) quizAudio.playClick();
+                            }}
+                            className={`w-full ${sec.color} border rounded-2xl sm:rounded-3xl p-4 sm:p-4.5 flex items-center justify-between gap-3 shadow-2xs hover:shadow-md transition-all active:scale-[0.98] cursor-pointer group`}
+                          >
+                            {/* Left side: Icon + Text */}
+                            <div className="flex items-center gap-3.5 min-w-0">
+                              <div className={`w-11 h-11 rounded-2xl ${sec.iconBg} flex items-center justify-center text-lg font-black shrink-0 shadow-2xs`}>
+                                {sec.icon}
                               </div>
-
-                              {/* Right side: Badge + Arrow */}
-                              <div className="flex items-center gap-2 shrink-0">
-                                <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${
-                                  count > 0 ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80" : "bg-slate-100 text-slate-500"
-                                }`}>
-                                  {count} Live
-                                </span>
-                                <div className="w-8 h-8 rounded-full bg-slate-50 group-hover:bg-orange-50 group-hover:text-[#FF6A00] flex items-center justify-center text-slate-400 transition-colors">
-                                  <ChevronRight className="w-4 h-4 stroke-[2.5px]" />
-                                </div>
+                              <div className="space-y-0.5 truncate">
+                                <h4 className="font-black text-sm sm:text-base text-slate-900 group-hover:text-[#FF6A00] transition-colors truncate">
+                                  {sec.title}
+                                </h4>
+                                <p className="text-[11px] font-bold text-slate-400 truncate">
+                                  {sec.desc}
+                                </p>
                               </div>
                             </div>
-                          );
-                        });
-                      })()}
-                    </div>
-                  </div>
 
-                  {/* 8 Feature Grid Nav Buttons (Quick Tools & Archive) */}
-                  <div className="space-y-2 pt-3 border-t border-slate-100">
-                    <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider pl-1">
-                      কোর্স টুলস ও আর্কাইভ (Quick Tools)
-                    </h4>
-
-                    <div className="grid grid-cols-4 gap-2">
-                      {[
-                        { name: "Routine", icon: "📅", color: "bg-blue-50 text-blue-600" },
-                        { name: "Result", icon: "🏆", color: "bg-amber-50 text-amber-600" },
-                        { name: "Archive", icon: "📂", color: "bg-purple-50 text-purple-600" },
-                        { name: "Favorite", icon: "🩶", color: "bg-rose-50 text-rose-600" },
-                        { name: "Syllabus", icon: "📜", color: "bg-green-50 text-green-600" },
-                        { name: "Merit List", icon: "🎖️", color: "bg-indigo-50 text-indigo-600" },
-                        { name: "Wrong & Unans", icon: "✕", color: "bg-red-50 text-red-600" },
-                        { name: "PDFs", icon: "📄", color: "bg-[#FFF1E6] text-[#FF6A00]" },
-                      ].map((item, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => {
-                            if (item.name === "Routine") setCurrentScreen("routine");
-                            else if (item.name === "Result" || item.name === "Merit List") setCurrentScreen("tests");
-                            else if (item.name === "Archive") {
-                              setArchiveFilterCourse(selectedCourseDetail.id);
-                              setArchiveFilterCategory("all");
-                              setArchiveModalOpen(true);
-                            }
-                            if (soundEnabled) quizAudio.playClick();
-                          }}
-                          className="bg-white border border-slate-100 rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1.5 text-center hover:border-orange-200 transition-all active:scale-95 cursor-pointer shadow-2xs"
-                        >
-                          <span className={`w-8 h-8 rounded-xl ${item.color} flex items-center justify-center text-sm font-black`}>
-                            {item.icon}
-                          </span>
-                          <span className="text-[10px] font-extrabold text-slate-700 truncate w-full">
-                            {item.name}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
+                            {/* Right side: Badge + Arrow */}
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${
+                                count > 0 ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80" : "bg-slate-100 text-slate-500"
+                              }`}>
+                                {count} Live
+                              </span>
+                              <div className="w-8 h-8 rounded-full bg-slate-50 group-hover:bg-orange-50 group-hover:text-[#FF6A00] flex items-center justify-center text-slate-400 transition-colors">
+                                <ChevronRight className="w-4 h-4 stroke-[2.5px]" />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                 </div>
               )}
