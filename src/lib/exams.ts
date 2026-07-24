@@ -13,9 +13,34 @@ export interface ExamPaper {
   totalMarks: number;
   topic: string;
   examDate: string;
+  startDateTime?: string; // YYYY-MM-DDTHH:mm
+  endDateTime?: string;   // YYYY-MM-DDTHH:mm
   status: "Live" | "Upcoming" | "Completed" | "Archive";
   questions: Question[];
   createdAt?: string;
+}
+
+export function getExamStatus(paper: ExamPaper): "Live" | "Upcoming" | "Archive" {
+  if (paper.startDateTime && paper.endDateTime) {
+    const now = new Date();
+    const start = new Date(paper.startDateTime);
+    const end = new Date(paper.endDateTime);
+
+    if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+      if (now < start) {
+        return "Upcoming";
+      } else if (now >= start && now <= end) {
+        return "Live";
+      } else {
+        return "Archive";
+      }
+    }
+  }
+  // Fallback if startDateTime or endDateTime not set
+  const s = (paper.status || "Live").toLowerCase();
+  if (s === "archive" || s === "archived" || s === "completed") return "Archive";
+  if (s === "upcoming") return "Upcoming";
+  return "Live";
 }
 
 export const DEFAULT_EXAM_PAPERS: ExamPaper[] = [
@@ -31,6 +56,8 @@ export const DEFAULT_EXAM_PAPERS: ExamPaper[] = [
     totalMarks: 20,
     topic: '"Award Mania: Season - 20" এর জন্য প্রযোজ্য ও সাম্প্রতিক বিষয়াবলী',
     examDate: "Fri, Jul 31, 2026",
+    startDateTime: "2026-07-20T00:00",
+    endDateTime: "2026-07-31T23:59",
     status: "Live",
     questions: QUIZ_QUESTIONS.slice(0, 20)
   },
@@ -46,12 +73,14 @@ export const DEFAULT_EXAM_PAPERS: ExamPaper[] = [
     totalMarks: 15,
     topic: "চিকিৎসাবিজ্ঞান, স্বাস্থ্যনীতি ও মানব শারীরবিদ্যা",
     examDate: "Sat, Aug 01, 2026",
+    startDateTime: "2026-07-24T00:00",
+    endDateTime: "2026-08-01T23:59",
     status: "Live",
     questions: QUIZ_QUESTIONS.slice(0, 15)
   },
   {
     id: "exam-bcs-daily-01",
-    title: "ডেইলি মডেল টেস্ট: বাংলাদেশ ও আন্তর্জাতিক বিষয়াবলী",
+    title: "ডেইলি কুইক টেস্ট: বাংলাদেশ ও আন্তর্জাতিক বিষয়াবলী",
     course: "bcs",
     examType: "daily",
     subject: "Bangladesh Affairs",
@@ -61,6 +90,8 @@ export const DEFAULT_EXAM_PAPERS: ExamPaper[] = [
     totalMarks: 10,
     topic: "মুক্তিযুদ্ধ, মুজিবনগর সরকার ও সাম্প্রতিক আন্তর্জাতিক ঘটনাপ্রবাহ",
     examDate: "Thu, Jul 30, 2026",
+    startDateTime: "2026-07-24T00:00",
+    endDateTime: "2026-07-30T23:59",
     status: "Live",
     questions: QUIZ_QUESTIONS.filter(q => q.subject === "Bangladesh Affairs" || q.subject === "International Affairs").slice(0, 10)
   },
@@ -76,6 +107,8 @@ export const DEFAULT_EXAM_PAPERS: ExamPaper[] = [
     totalMarks: 15,
     topic: "English Grammar, Mathematics & Technology Special Focus",
     examDate: "Wed, Jul 29, 2026",
+    startDateTime: "2026-07-01T00:00",
+    endDateTime: "2026-07-20T23:59",
     status: "Archive",
     questions: QUIZ_QUESTIONS.filter(q => q.subject === "Technology" || q.subject === "General Science" || q.subject === "Geography").slice(0, 15)
   },
@@ -91,6 +124,8 @@ export const DEFAULT_EXAM_PAPERS: ExamPaper[] = [
     totalMarks: 12,
     topic: "বাংলা, ইংরেজি, গণিত ও সাধারণ জ্ঞান পূর্ণাঙ্গ সেট",
     examDate: "Tue, Jul 28, 2026",
+    startDateTime: "2026-07-01T00:00",
+    endDateTime: "2026-07-22T23:59",
     status: "Archive",
     questions: QUIZ_QUESTIONS.slice(5, 17)
   }
@@ -124,6 +159,8 @@ export async function fetchExamPapersFromDb(): Promise<ExamPaper[]> {
       totalMarks: item.totalMarks || item.total_marks || item.questions?.length || 10,
       topic: item.topic || "মডেল টেস্ট",
       examDate: item.examDate || item.exam_date || "Today",
+      startDateTime: item.startDateTime || item.start_date_time || item.startDate,
+      endDateTime: item.endDateTime || item.end_date_time || item.endDate,
       status: item.status || "Live",
       questions: typeof item.questions === "string" ? JSON.parse(item.questions) : item.questions || []
     }));
@@ -166,6 +203,8 @@ export async function saveExamPaperToDb(paper: ExamPaper): Promise<boolean> {
       total_marks: paper.totalMarks,
       topic: paper.topic,
       exam_date: paper.examDate,
+      start_date_time: paper.startDateTime,
+      end_date_time: paper.endDateTime,
       status: paper.status,
       questions: JSON.stringify(paper.questions)
     };

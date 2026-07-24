@@ -47,7 +47,7 @@ import {
 import Link from "next/link";
 import { QUIZ_QUESTIONS, Question, LIVE_QUIZ_ALLOWED_SUBJECTS } from "../data";
 import { getSupabase } from "../lib/supabase";
-import { fetchExamPapersFromDb, subscribeToExamPapers, ExamPaper } from "../lib/exams";
+import { fetchExamPapersFromDb, subscribeToExamPapers, ExamPaper, getExamStatus } from "../lib/exams";
 import { quizAudio } from "../lib/audio";
 import { PwaProvider, BottomInstallBanner, InstallPwaPopup } from "../components/InstallPwaPopup";
 
@@ -491,6 +491,15 @@ export default function Home() {
 
   // Exam Paper Handlers
   const handleOpenTakeExam = (paper: ExamPaper) => {
+    const currentStatus = getExamStatus(paper);
+    if (currentStatus === "Upcoming") {
+      const startTimeFormatted = paper.startDateTime 
+        ? new Date(paper.startDateTime).toLocaleString("bn-BD", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true })
+        : paper.examDate;
+      alert(`⏳ পরীক্ষাটি এখনো শুরু হয়নি!\n\nপরীক্ষা শুরুর সময়:\n${startTimeFormatted}\n\nনির্ধারিত সময় শুরু হলেই আপনি লাইভ পরীক্ষায় অংশ নিতে পারবেন।`);
+      return;
+    }
+
     setTakingExamModal(paper);
     setExamUserAnswers({});
     setExamSubmitted(false);
@@ -1023,7 +1032,14 @@ export default function Home() {
 
             <button 
               onClick={() => {
-                attemptExitQuiz(() => setCurrentScreen("routine"));
+                attemptExitQuiz(() => {
+                  if (currentScreen === "routine") {
+                    setCurrentScreen(previousScreen || "home");
+                  } else {
+                    setPreviousScreen(currentScreen as any);
+                    setCurrentScreen("routine");
+                  }
+                });
                 if (soundEnabled) quizAudio.playClick();
               }}
               className="p-1.5 text-slate-500 hover:bg-slate-100 rounded-full relative active:scale-95 transition-all cursor-pointer"
@@ -1826,9 +1842,9 @@ export default function Home() {
                         },
                         { 
                           id: "daily", 
-                          title: "Daily Model Test", 
-                          banglaTitle: "⚡ ডেইলি মডেল টেস্ট",
-                          desc: "প্রতিদিনের বিষয়ভিত্তিক শর্ট মডেল টেস্ট",
+                          title: "Daily Quick Test", 
+                          banglaTitle: "⚡ ডেইলি কুইক টেস্ট",
+                          desc: "প্রতিদিনের বিষয়ভিত্তিক শর্ট কুইজ টেস্ট",
                           color: "border-amber-200/90 hover:border-amber-400 bg-white",
                           iconBg: "bg-amber-100 text-amber-700",
                           icon: "⚡"
@@ -1855,8 +1871,8 @@ export default function Home() {
 
                       return allSections.map((sec) => {
                         const count = examPapers.filter(p => {
-                          const isArchived = p.status?.toLowerCase() === "archive" || p.status?.toLowerCase() === "archived";
-                          if (isArchived) return false;
+                          const status = getExamStatus(p);
+                          if (status !== "Live") return false;
                           if (p.course && p.course !== "all_courses" && p.course !== "all" && p.course !== selectedCourseDetail.id) return false;
                           return p.examType === sec.id;
                         }).length;
@@ -1904,7 +1920,7 @@ export default function Home() {
                 </div>
               )}
 
-              {/* CASE 2: Inside Specific Exam Section (e.g. Daily Model Test / Weekly Model Test / BCS Health Special) */}
+              {/* CASE 2: Inside Specific Exam Section (e.g. Daily Quick Test / Weekly Model Test / BCS Health Special) */}
               {activeExamSection && (
                 <div className="space-y-5">
                   {/* Section Breadcrumb Banner */}
@@ -1912,13 +1928,13 @@ export default function Home() {
                     <div>
                       <h4 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
                         <span>
-                          {activeExamSection === "daily" ? "⚡ Daily Model Test" :
+                          {activeExamSection === "daily" ? "⚡ Daily Quick Test" :
                            activeExamSection === "weekly" ? "📅 Weekly Model Test" :
                            activeExamSection === "special" ? "🩺 BCS Health Special" : "📚 Subject Wise Test"}
                         </span>
                       </h4>
                       <p className="text-[11px] font-bold text-slate-400">
-                        {selectedCourseDetail.title} এর অধীনে লাইভ প্রশ্নপত্রসমূহ
+                        {selectedCourseDetail.title} এর অধীনে চলমান ও সময়সূচি ভিত্তিক প্রশ্নপত্রসমূহ
                       </p>
                     </div>
 
@@ -1933,8 +1949,9 @@ export default function Home() {
                   {/* Papers list for this section */}
                   {(() => {
                     const sectionPapers = examPapers.filter(p => {
-                      const isArchived = p.status?.toLowerCase() === "archive" || p.status?.toLowerCase() === "archived";
-                      if (isArchived) return false;
+                      const currentStatus = getExamStatus(p);
+                      // Show Live and Upcoming exams in section list. Archive papers go to archive tab automatically!
+                      if (currentStatus === "Archive") return false;
                       if (p.course && p.course !== "all_courses" && p.course !== "all" && p.course !== selectedCourseDetail.id) {
                         return false;
                       }
@@ -1948,10 +1965,10 @@ export default function Home() {
                             {activeExamSection === "daily" ? "⚡" : activeExamSection === "weekly" ? "📅" : activeExamSection === "special" ? "🩺" : "📚"}
                           </div>
                           <h3 className="text-sm sm:text-base font-black text-slate-800">
-                            বর্তমানে কোনো পরীক্ষা লাইভ নেই
+                            বর্তমানে কোনো পরীক্ষা লাইভ বা আসন্ন নেই
                           </h3>
                           <p className="text-xs font-bold text-slate-400 max-w-sm mx-auto">
-                            এই সেকশনে (কোর্স: {selectedCourseDetail.title}) এখনো কোনো লাইভ পরীক্ষা যুক্ত করা হয়নি। অ্যাডমিন প্যানেল থেকে প্রশ্নপত্র এড করা হলে তা এখানে সরাসরি দেখা যাবে।
+                            এই সেকশনে (কোর্স: {selectedCourseDetail.title}) এখনো কোনো লাইভ বা আসন্ন পরীক্ষা যুক্ত করা হয়নি। আগের সব পরীক্ষা আর্কাইভ (Archive) ট্যাব থেকে পুনঃপরীক্ষা দেওয়া যাবে।
                           </p>
                           <button
                             onClick={() => setActiveExamSection(null)}
@@ -1964,7 +1981,7 @@ export default function Home() {
                     }
 
                     const examTypeBadgeMap: Record<string, { label: string; bg: string }> = {
-                      daily: { label: "⚡ Daily Model Test", bg: "bg-amber-50 text-amber-700 border-amber-100" },
+                      daily: { label: "⚡ Daily Quick Test", bg: "bg-amber-50 text-amber-700 border-amber-100" },
                       weekly: { label: "📅 Weekly Model Test", bg: "bg-purple-50 text-purple-700 border-purple-100" },
                       special: { label: "🩺 BCS Health Special", bg: "bg-rose-50 text-rose-700 border-rose-100" },
                       subject: { label: "📚 Subject Wise Test", bg: "bg-blue-50 text-blue-700 border-blue-100" }
@@ -1973,6 +1990,7 @@ export default function Home() {
                     return (
                       <div className="space-y-4">
                         {sectionPapers.map((paper) => {
+                          const computedStatus = getExamStatus(paper);
                           const totalSec = paper.totalDurationSeconds || (paper.questions?.length || 10) * 36;
                           const durationMins = Math.floor(totalSec / 60);
                           const typeBadge = examTypeBadgeMap[paper.examType] || { label: paper.examType, bg: "bg-slate-50 text-slate-700 border-slate-100" };
@@ -1988,9 +2006,16 @@ export default function Home() {
                                   <span className={`font-extrabold text-[10px] px-2.5 py-0.5 rounded-full border ${typeBadge.bg}`}>
                                     {typeBadge.label}
                                   </span>
-                                  <span className="bg-emerald-50 text-emerald-600 font-black text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-emerald-100">
-                                    ● {paper.status || "Live"}
-                                  </span>
+                                  {computedStatus === "Live" && (
+                                    <span className="bg-emerald-50 text-emerald-600 font-black text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-emerald-100">
+                                      ● Live
+                                    </span>
+                                  )}
+                                  {computedStatus === "Upcoming" && (
+                                    <span className="bg-amber-50 text-amber-700 font-black text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-amber-200">
+                                      ⏳ Upcoming
+                                    </span>
+                                  )}
                                 </div>
                               </div>
 
@@ -3282,9 +3307,9 @@ export default function Home() {
               {/* Archived Exam Cards List */}
               {(() => {
                 const archivedPapers = examPapers.filter(p => {
-                  // 1. Must be archived status
-                  const isArchived = p.status?.toLowerCase() === "archive" || p.status?.toLowerCase() === "archived";
-                  if (!isArchived) return false;
+                  // 1. Must be calculated as Archive status (or manually marked Archive)
+                  const currentStatus = getExamStatus(p);
+                  if (currentStatus !== "Archive") return false;
 
                   // 2. Course filter
                   if (archiveFilterCourse !== "all") {
@@ -3309,14 +3334,14 @@ export default function Home() {
                       </div>
                       <h3 className="text-sm font-black text-slate-800">কোনো আর্কাইভড মডেল টেস্ট পাওয়া যায়নি</h3>
                       <p className="text-xs font-bold text-slate-400 max-w-sm mx-auto">
-                        এই ফিল্টারে বর্তমানে কোনো প্রশ্নপত্র আর্কাইভ করা নেই। Admin প্যানেল থেকে কোনো পরীক্ষা Archive করা হলে তা এখানে দেখাবে।
+                        এই ফিল্টারে বর্তমানে কোনো প্রশ্নপত্র আর্কাইভ করা নেই। পরীক্ষার সময় শেষ হলে তা স্বয়ংক্রিয়ভাবে এখানে চলে আসবে এবং যেকোনো সময় এক্সাম/রি-এক্সাম দেওয়া যাবে।
                       </p>
                     </div>
                   );
                 }
 
                 const typeBadgeMap: Record<string, string> = {
-                  daily: "⚡ ডেইলি মডেল টেস্ট",
+                  daily: "⚡ ডেইলি কুইক টেস্ট",
                   weekly: "📅 সাপ্তাহিক মডেল টেস্ট",
                   subject: "📚 বিষয়ভিত্তিক",
                   special: "⭐ স্পেশাল"
