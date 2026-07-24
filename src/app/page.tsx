@@ -1672,30 +1672,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Course Main Card */}
-              <div className="bg-white border border-slate-100 rounded-[2rem] p-5 shadow-sm space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className={`w-14 h-14 ${selectedCourseDetail.bg} ${selectedCourseDetail.iconColor} rounded-2xl flex items-center justify-center shrink-0 shadow-inner`}>
-                    {(() => {
-                      const IconComponent = selectedCourseDetail.icon;
-                      return <IconComponent className="w-7 h-7 stroke-[2.2px]" />;
-                    })()}
-                  </div>
-                  <div>
-                    <h4 className="text-base font-black text-slate-800 leading-snug">
-                      {selectedCourseDetail.title}
-                    </h4>
-                    <span className="text-[10px] font-bold text-slate-400">
-                      সহজ গাইড ও স্পেশাল মক টেস্ট
-                    </span>
-                  </div>
-                </div>
-
-                <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                  {selectedCourseDetail.desc}
-                </p>
-              </div>
-
               {/* Grid Section of Tests */}
               <div className="space-y-3">
                 <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider pl-1">
